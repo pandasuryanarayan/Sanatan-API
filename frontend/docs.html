@@ -233,7 +233,14 @@ GET /vedas/rigveda/mandala/1/sukta/1/mantra/1</pre></div>
     // 2) If logged in, reflect that and update the navbar CTA.
     const user = await S.getUser();
     const cta = document.getElementById("navCta");
-    if (user) { cta.textContent = "Dashboard"; cta.setAttribute("href", "dashboard.html"); }
+    if (user) {
+      cta.textContent = "Dashboard"; cta.setAttribute("href", "dashboard.html");
+      const a = document.createElement("a");
+      a.href = "profile.html"; a.className = "avatar"; a.id = "navAvatar";
+      a.title = S.getDisplayName(user) || user.email || "Profile";
+      a.textContent = S.getInitial(user);
+      cta.after(a);
+    }
 
     if (key) {
       notice.textContent = "Logged in — your API key is filled into every snippet below.";
