@@ -133,9 +133,41 @@
     });
   }
 
+  /* ---------- Navbar avatar ---------- */
+  function getDisplayName(user) {
+    if (!user) return "";
+    const m = user.user_metadata || {};
+    return String(m.name || m.full_name || m.display_name || "").trim();
+  }
+
+  // First letter of name, else first letter of email, else "R".
+  function getInitial(user) {
+    const name = getDisplayName(user);
+    const src = (name || (user && user.email) || "").trim();
+    return (src ? src[0] : "R").toUpperCase();
+  }
+
+  // If a #navCta (Login) link exists and a session is active,
+  // swap it for a circular avatar linking to profile.html.
+  async function wireNavAvatar() {
+    const cta = $("#navCta");
+    if (!cta) return null;
+    const user = await getUser();
+    if (!user) return null;
+    const a = document.createElement("a");
+    a.href = "profile.html";
+    a.className = "avatar";
+    a.id = "navAvatar";
+    a.title = getDisplayName(user) || (user && user.email) || "Profile";
+    a.textContent = getInitial(user);
+    cta.replaceWith(a);
+    return user;
+  }
+
   /* ---------- Expose ---------- */
   window.Sanatan = {
     cfg: CFG, getClient, getUser, requireAuth, logout, api,
     $, $$, esc, fmtDate, fmtRelative, maskKey, showMsg, hideMsg, copyText, wireSidebar,
+    getDisplayName, getInitial, wireNavAvatar,
   };
 })();

@@ -36,6 +36,7 @@ sanatan-api/
 │   ├── dashboard.html        # Stats, Chart.js usage graph, recent calls
 │   ├── keys.html             # Generate / revoke API keys
 │   ├── docs.html             # API reference, auto-fills your key
+│   ├── profile.html          # Name, email, Supabase user ID
 │   └── assets/
 │       ├── style.css         # Spiritual Glossy design system
 │       ├── app.js            # Shared auth / API / UI helpers

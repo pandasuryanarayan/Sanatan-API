@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Profile · Sanatan API</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <img src="assets/om-logo.svg" alt="Om" />
+      <span>Sanatan API</span>
+    </a>
+    <nav class="nav-links">
+      <a href="docs.html" class="hide-sm">Docs</a>
+      <a href="docs.html#endpoints" class="hide-sm">Endpoints</a>
+      <a href="login.html" class="btn btn-primary btn-sm" id="navCta">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ PROFILE CARD ============ -->
+<div class="auth-wrap">
+  <div class="glass glass-strong auth-card" style="max-width:520px;">
+    <div class="flex items-center gap-2" style="margin-bottom:22px;">
+      <div class="avatar-lg" id="avatarLg">R</div>
+      <div style="min-width:0;">
+        <h2 id="profileName" style="margin:0;">Your profile</h2>
+        <p class="muted" id="profileEmail" style="margin:2px 0 0;word-break:break-all;"></p>
+      </div>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <form id="profileForm">
+      <div class="field">
+        <label for="nameInput">Name</label>
+        <input id="nameInput" type="text" autocomplete="name" maxlength="60" placeholder="Your name" />
+      </div>
+      <button class="btn btn-primary btn-block" type="submit" id="saveBtn">Save name</button>
+    </form>
+
+    <div class="field" style="margin-top:16px;">
+      <label for="emailInput">Email</label>
+      <input id="emailInput" type="email" disabled />
+    </div>
+
+    <div class="field">
+      <label>User ID</label>
+      <div class="id-row">
+        <code id="uidText">—</code>
+        <button class="btn btn-ghost btn-sm" type="button" id="copyUid">Copy</button>
+      </div>
+      <p class="muted" style="margin:8px 0 0;font-size:.82rem;">Supabase-generated ID for your account — quote it if you ever need support.</p>
+    </div>
+
+    <p class="muted" style="font-size:.86rem;">Member since <span id="memberSince">—</span></p>
+
+    <div class="flex gap-2 wrap" style="margin-top:18px;">
+      <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
+      <button class="btn btn-danger" type="button" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const S = window.Sanatan;
+  S.wireNavAvatar();
+
+  (async function () {
+    const user = await S.requireAuth();
+    if (!user) return;
+
+    const avatarLg = document.getElementById("avatarLg");
+    const profileName = document.getElementById("profileName");
+    const profileEmail = document.getElementById("profileEmail");
+    const nameInput = document.getElementById("nameInput");
+    const emailInput = document.getElementById("emailInput");
+    const uidText = document.getElementById("uidText");
+    const msg = document.getElementById("msg");
+
+    function paint(u) {
+      avatarLg.textContent = S.getInitial(u);
+      avatarLg.title = S.getDisplayName(u) || u.email || "Profile";
+      profileName.textContent = S.getDisplayName(u) || "Your profile";
+      profileEmail.textContent = u.email || "";
+    }
+    paint(user);
+    nameInput.value = S.getDisplayName(user);
+    emailInput.value = user.email || "";
+    uidText.textContent = user.id || "—";
+    document.getElementById("memberSince").textContent = S.fmtDate(user.created_at);
+
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      S.hideMsg(msg);
+      const btn = document.getElementById("saveBtn");
+      btn.disabled = true; btn.textContent = "Saving…";
+      const sb = S.getClient();
+      const { data, error } = await sb.auth.updateUser({
+        data: { name: nameInput.value.trim() },
+      });
+      btn.disabled = false; btn.textContent = "Save name";
+      if (error) { S.showMsg(msg, error.message, "error"); return; }
+      if (data && data.user) paint(data.user);
+      S.showMsg(msg, "Name saved.", "ok");
+    });
+
+    document.getElementById("copyUid").addEventListener("click", function () {
+      S.copyText(uidText.textContent, this);
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => S.logout());
+  })();
+})();
+</script>
+</body>
+</html>

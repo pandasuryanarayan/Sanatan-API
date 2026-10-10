@@ -24,7 +24,7 @@
     <nav class="nav-links">
       <a href="docs.html" class="hide-sm">Docs</a>
       <a href="docs.html#endpoints" class="hide-sm">Endpoints</a>
-      <a href="login.html" class="btn btn-primary btn-sm">Login</a>
+      <a href="login.html" class="btn btn-primary btn-sm" id="navCta">Login</a>
     </nav>
   </div>
 </header>
@@ -198,5 +198,9 @@
 <script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/app.js"></script>
+<script>
+  // Logged in? Swap the Login button for a circular profile avatar.
+  window.Sanatan.wireNavAvatar();
+</script>
 </body>
 </html>
