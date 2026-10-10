@@ -29,7 +29,7 @@ export async function apiKeyAuth(req, res, next) {
 
   const ok = await verifyKey(raw, row.key_hash);
   if (!ok) return res.status(401).json({ error: "Invalid API key" });
-  if (!row.is_active) return res.status(403).json({ error: "API key revoked" });
+  if (!row.is_active) return res.status(403).json({ error: "No API key found. Create an API key to use." });
 
   // 2) Per-second burst limit.
   const secCount = await incrWithTTL(`rl:sec:${row.id}`, 1);
