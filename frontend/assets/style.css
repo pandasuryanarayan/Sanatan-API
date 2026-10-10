@@ -144,6 +144,8 @@ code,kbd,pre{font-family:var(--font-mono)}
 .nav-links{margin-left:auto;display:flex;align-items:center;gap:22px}
 .nav-links a{color:var(--ink-700);font-weight:500}
 .nav-links a:hover{color:var(--orange-2);text-decoration:none}
+.nav-links a.btn-primary:hover{color:#fff}
+.nav-links a.btn-ghost:hover{color:var(--ink-900)}
 @media(max-width:640px){.nav-links .hide-sm{display:none}}
 
 /* ---------- Hero ---------- */
