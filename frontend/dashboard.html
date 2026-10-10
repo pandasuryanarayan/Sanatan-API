@@ -32,7 +32,10 @@
       </a>
     </nav>
     <div class="side-foot">
-      <div class="side-user" id="sideUser">…</div>
+      <a class="side-profile" href="profile.html" id="sideProfile" title="Profile">
+        <span class="avatar-side" id="sideAvatar">R</span>
+        <span class="side-user" id="sideUser">…</span>
+      </a>
       <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn" type="button">Logout</button>
     </div>
   </aside>
@@ -181,6 +184,9 @@
     const user = await S.requireAuth();
     if (!user) return;
     document.getElementById("sideUser").textContent = user.email || "";
+    const sideAvatar = document.getElementById("sideAvatar");
+    sideAvatar.textContent = S.getInitial(user);
+    document.getElementById("sideProfile").title = S.getDisplayName(user) || user.email || "Profile";
     await load();
   })();
 })();
