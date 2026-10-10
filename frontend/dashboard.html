@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard · Sanatan API</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="app">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="index.html"><img src="assets/om-logo.svg" alt="Om" /></a>
+    <nav class="side-tabs">
+      <a class="side-tab active" href="dashboard.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a class="side-tab" href="keys.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M17 12v4M21 12v3"/></svg>
+        API Keys
+      </a>
+      <a class="side-tab" href="docs.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v5h5"/></svg>
+        Docs
+      </a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-user" id="sideUser">…</div>
+      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn" type="button">Logout</button>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="app-main">
+    <div class="app-head">
+      <button class="btn btn-ghost btn-sm menu-toggle" id="menuToggle" type="button">☰</button>
+      <h1>Dashboard</h1>
+      <span class="badge plan" id="planBadge" style="margin-left:auto;">Free tier</span>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <!-- Stats -->
+    <div class="grid g-4" style="margin-bottom:22px;">
+      <div class="glass stat">
+        <div class="label">Requests this month</div>
+        <div class="value" id="statMonth">—</div>
+      </div>
+      <div class="glass stat">
+        <div class="label">Requests today</div>
+        <div class="value" id="statToday">—</div>
+      </div>
+      <div class="glass stat">
+        <div class="label">Monthly quota</div>
+        <div class="value" id="statQuota">—</div>
+      </div>
+      <div class="glass stat">
+        <div class="label">Current plan</div>
+        <div class="value" id="statPlan" style="font-size:1.3rem;">Free</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="glass" style="margin-bottom:22px;">
+      <h3 style="margin-top:0;">Usage — last 7 days</h3>
+      <div style="height:280px;"><canvas id="usageChart"></canvas></div>
+    </div>
+
+    <!-- Recent calls -->
+    <div class="glass" style="padding:0;">
+      <div style="padding:22px 24px 8px;"><h3 style="margin:0;">Recent API calls</h3></div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Endpoint</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody id="callsBody">
+            <tr><td colspan="3" class="muted" style="text-align:center;padding:30px;">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const S = window.Sanatan;
+  const msg = document.getElementById("msg");
+  const callsBody = document.getElementById("callsBody");
+  let chart = null;
+
+  S.wireSidebar();
+  document.getElementById("menuToggle").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+  document.getElementById("logoutBtn").addEventListener("click", () => S.logout());
+
+  function codeClass(code) {
+    if (code < 300) return "ok";
+    if (code < 500) return "warn";
+    return "err";
+  }
+
+  function drawChart(labels, values) {
+    const ctx = document.getElementById("usageChart").getContext("2d");
+    const grad = ctx.createLinearGradient(0, 0, 0, 280);
+    grad.addColorStop(0, "rgba(255,140,66,0.45)");
+    grad.addColorStop(1, "rgba(255,140,66,0.02)");
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Requests",
+          data: values,
+          fill: true,
+          backgroundColor: grad,
+          borderColor: "#FF6A00",
+          borderWidth: 2.5,
+          tension: 0.4,
+          pointBackgroundColor: "#FF6A00",
+          pointBorderColor: "#fff",
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: "rgba(255,140,66,0.10)" }, ticks: { color: "#8D6E63", precision: 0 } },
+          x: { grid: { display: false }, ticks: { color: "#8D6E63" } },
+        },
+      },
+    });
+  }
+
+  function renderCalls(recent) {
+    if (!recent || !recent.length) {
+      callsBody.innerHTML = '<tr><td colspan="3" class="muted" style="text-align:center;padding:30px;">No calls logged yet. Make a request with your API key.</td></tr>';
+      return;
+    }
+    callsBody.innerHTML = recent.map(c => `
+      <tr>
+        <td class="mono">${S.esc(c.endpoint)}</td>
+        <td><span class="status-code ${codeClass(c.status_code)}">${S.esc(c.status_code)}</span></td>
+        <td class="muted">${S.fmtDate(c.timestamp)}</td>
+      </tr>`).join("");
+  }
+
+  async function load() {
+    try {
+      const d = await S.api("/api/usage/stats");
+      document.getElementById("statMonth").textContent = (d.total_this_month ?? 0).toLocaleString("en-IN");
+      document.getElementById("statToday").textContent = (d.today ?? 0).toLocaleString("en-IN");
+      document.getElementById("statQuota").innerHTML = (d.quota ?? S.cfg.FREE_TIER_MONTHLY).toLocaleString("en-IN") + ' <small>/ month</small>';
+      document.getElementById("statPlan").textContent = d.plan || "Free";
+      document.getElementById("planBadge").textContent = (d.plan || "Free") + " tier";
+
+      const daily = d.daily || [];
+      drawChart(daily.map(x => x.date), daily.map(x => x.count));
+      renderCalls(d.recent);
+    } catch (e) {
+      S.showMsg(msg, e.message + " — is the backend running?", "error");
+      // graceful empty chart
+      drawChart([], []);
+      renderCalls([]);
+    }
+  }
+
+  (async function boot() {
+    const user = await S.requireAuth();
+    if (!user) return;
+    document.getElementById("sideUser").textContent = user.email || "";
+    await load();
+  })();
+})();
+</script>
+</body>
+</html>

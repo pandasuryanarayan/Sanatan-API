@@ -1,0 +1,22 @@
+{
+  "name": "sanatan-api-backend",
+  "version": "3.0.0",
+  "description": "Decoupled Express backend for Sanatan API — Gita & Veda shloks as JSON, with Supabase auth/DB and Redis rate limiting.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1"
+  }
+}

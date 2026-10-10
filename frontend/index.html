@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sanatan API — Ancient Wisdom. Modern API.</title>
+<meta name="description" content="A developer-first REST API to fetch Shloks from all four Vedas and the Bhagavad Gita in clean JSON — Sanskrit, transliteration, Hindi and English meaning." />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <img src="assets/om-logo.svg" alt="Om" />
+      <span>Sanatan API</span>
+    </a>
+    <nav class="nav-links">
+      <a href="docs.html" class="hide-sm">Docs</a>
+      <a href="docs.html#endpoints" class="hide-sm">Endpoints</a>
+      <a href="login.html" class="btn btn-primary btn-sm">Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow">ॐ Developer-first Scripture API</span>
+      <h1>Ancient Wisdom.<br /><span style="background:linear-gradient(180deg,#FF9E1B,#FF6A00);-webkit-background-clip:text;background-clip:text;color:transparent;">Modern API.</span></h1>
+      <p class="lead">Fetch Shloks from the Bhagavad Gita and all four Vedas as clean JSON — Sanskrit, transliteration, and Hindi &amp; English meaning. Drop one endpoint into your app, bot, or website and start shipping.</p>
+      <p class="lead" style="font-size:.98rem;">10,000+ shloks &amp; mantras · Free tier included · No credit card.</p>
+      <div class="cta-row">
+        <a href="login.html" class="btn btn-primary">Get API Key — Free</a>
+        <a href="docs.html" class="btn btn-ghost">View Docs</a>
+      </div>
+    </div>
+
+    <!-- Code preview -->
+    <div class="code-window">
+      <div class="code-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="file">app.js</span>
+      </div>
+<pre class="code"><span class="c">// One call. Pure dharma in JSON.</span>
+<span class="k">const</span> res = <span class="k">await</span> <span class="f">fetch</span>(
+  <span class="s">'https://api.sanatanapi.com/api/v1/gita/chapter/2/verse/47'</span>,
+  { headers: { <span class="s">'x-api-key'</span>: <span class="s">'sanatan-a8f3k9p2l6q1x5z7'</span> } }
+);
+<span class="k">const</span> shlok = <span class="k">await</span> res.<span class="f">json</span>();
+
+<span class="c">// {</span>
+<span class="c">//   "sanskrit": "कर्मण्येवाधिकारस्ते...",</span>
+<span class="c">//   "transliteration": "karmanyevadhikaraste...",</span>
+<span class="c">//   "translations": { "hindi": "...", "english": "..." }</span>
+<span class="c">// }</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="center mb-2">
+      <span class="eyebrow">How it works</span>
+      <h2 style="font-size:2rem;">From zero to your first shlok in minutes</h2>
+    </div>
+    <div class="grid g-3">
+      <div class="glass glass-lift">
+        <div class="step-num">1</div>
+        <h3>Register &amp; Verify</h3>
+        <p class="muted">Create an account with your email. Supabase sends a verification link — click it and you're in.</p>
+      </div>
+      <div class="glass glass-lift">
+        <div class="step-num">2</div>
+        <h3>Generate a <span class="mono">sanatan-</span> Key</h3>
+        <p class="muted">Create an API key from the dashboard. It's shown once, hashed in our database, and revocable anytime.</p>
+      </div>
+      <div class="glass glass-lift">
+        <div class="step-num">3</div>
+        <h3>Use It in Your App</h3>
+        <p class="muted">Send it as the <code class="inline">x-api-key</code> header and pull shloks into any product you build.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="section" id="features" style="padding-top:0;">
+  <div class="container">
+    <div class="center mb-2">
+      <span class="eyebrow">Features</span>
+      <h2 style="font-size:2rem;">Built for developers who care about the details</h2>
+    </div>
+    <div class="grid g-4">
+      <div class="glass glass-lift">
+        <h3 style="font-size:1.05rem;">⚡ Fast JSON</h3>
+        <p class="muted" style="font-size:.94rem;">Sub-100ms responses from a lean, cached REST layer. Clean, predictable schemas.</p>
+      </div>
+      <div class="glass glass-lift">
+        <h3 style="font-size:1.05rem;">🕉 Sanskrit + Transliteration + Meaning</h3>
+        <p class="muted" style="font-size:.94rem;">Every verse ships with the original Devanagari, romanised transliteration, and Hindi/English meaning.</p>
+      </div>
+      <div class="glass glass-lift">
+        <h3 style="font-size:1.05rem;">🛡 99.9% Uptime</h3>
+        <p class="muted" style="font-size:.94rem;">Rate-limited, logged, and monitored. Standard headers tell you exactly where you stand.</p>
+      </div>
+      <div class="glass glass-lift">
+        <h3 style="font-size:1.05rem;">🎁 Free Tier</h3>
+        <p class="muted" style="font-size:.94rem;">1,000 requests/month, 10 req/sec, up to 2 keys. Start building at no cost.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCRIPTURES ============ -->
+<section class="section" id="scriptures" style="padding-top:0;">
+  <div class="container">
+    <div class="center mb-2">
+      <span class="eyebrow">Scriptures covered</span>
+      <h2 style="font-size:2rem;">The Gita and all four Vedas</h2>
+      <p class="muted">Architecture is extensible for Upanishads, Ramayana, and Puranas in future releases.</p>
+    </div>
+    <div class="grid g-3">
+      <div class="glass glass-lift scripture-card">
+        <span class="om">ॐ</span>
+        <h3>Bhagavad Gita</h3>
+        <div class="count">700</div>
+        <p class="muted" style="margin:0;">verses · 18 chapters</p>
+      </div>
+      <div class="glass glass-lift scripture-card">
+        <span class="om">ॐ</span>
+        <h3>Rigveda</h3>
+        <div class="count">10,552</div>
+        <p class="muted" style="margin:0;">mantras · 10 mandalas</p>
+      </div>
+      <div class="glass glass-lift scripture-card">
+        <span class="om">ॐ</span>
+        <h3>Yajurveda</h3>
+        <div class="count">1,975</div>
+        <p class="muted" style="margin:0;">verses</p>
+      </div>
+      <div class="glass glass-lift scripture-card">
+        <span class="om">ॐ</span>
+        <h3>Samaveda</h3>
+        <div class="count">1,875</div>
+        <p class="muted" style="margin:0;">verses</p>
+      </div>
+      <div class="glass glass-lift scripture-card">
+        <span class="om">ॐ</span>
+        <h3>Atharvaveda</h3>
+        <div class="count">5,977</div>
+        <p class="muted" style="margin:0;">mantras</p>
+      </div>
+      <div class="glass scripture-card" style="display:grid;place-items:center;text-align:center;">
+        <div>
+          <h3 style="margin-bottom:6px;">More coming</h3>
+          <p class="muted" style="margin:0;">Upanishads · Ramcharitmanas · Puranas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="glass glass-strong center" style="padding:46px 26px;">
+      <h2 style="font-size:1.8rem;">Start building with the Sanatan API</h2>
+      <p class="muted">Grab a free key and ship your first shlok today.</p>
+      <div class="cta-row" style="justify-content:center;">
+        <a href="login.html" class="btn btn-primary">Get API Key — Free</a>
+        <a href="docs.html" class="btn btn-ghost">Read the Docs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div class="brand"><img src="assets/om-logo.svg" alt="Om" style="width:28px;height:28px;" /><span>Sanatan API</span></div>
+    <div class="muted" style="font-size:.9rem;">Ancient Wisdom. Modern API. · v3.0</div>
+    <div class="flex gap-2">
+      <a href="docs.html">Docs</a>
+      <a href="login.html">Login</a>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

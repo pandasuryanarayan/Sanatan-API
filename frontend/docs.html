@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Documentation · Sanatan API</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><img src="assets/om-logo.svg" alt="Om" /><span>Sanatan API</span></a>
+    <nav class="nav-links">
+      <a href="index.html" class="hide-sm">Home</a>
+      <a href="dashboard.html" class="hide-sm">Dashboard</a>
+      <a href="login.html" class="btn btn-primary btn-sm" id="navCta">Login</a>
+    </nav>
+  </div>
+</header>
+
+<div class="docs">
+  <!-- ===== TOC ===== -->
+  <aside class="docs-toc">
+    <div class="grp">
+      <h4>Getting started</h4>
+      <a href="#intro">Introduction</a>
+      <a href="#base-url">Base URL</a>
+      <a href="#auth">Authentication</a>
+      <a href="#rate-limits">Rate limits</a>
+    </div>
+    <div class="grp">
+      <h4>Endpoints</h4>
+      <a href="#endpoints">Overview</a>
+      <a href="#gita">Gita</a>
+      <a href="#vedas">Vedas</a>
+      <a href="#search">Search</a>
+    </div>
+    <div class="grp">
+      <h4>Reference</h4>
+      <a href="#response">Response format</a>
+      <a href="#errors">Errors</a>
+    </div>
+  </aside>
+
+  <!-- ===== BODY ===== -->
+  <main class="docs-body">
+    <h1 style="font-size:2rem;">Sanatan API Documentation</h1>
+    <p class="muted">Fetch Shloks from the Bhagavad Gita and all four Vedas as clean JSON.</p>
+
+    <div id="keyNotice" class="msg ok" style="display:none;"></div>
+
+    <h2 id="intro">Introduction</h2>
+    <p>The Sanatan API is a REST interface to Vedic scripture. Every verse is returned with its original Devanagari text, a romanised transliteration, and Hindi &amp; English meaning — so you can render it faithfully in any app, bot, or website.</p>
+
+    <h2 id="base-url">Base URL</h2>
+    <p>All endpoints are relative to:</p>
+    <div class="endpoint"><span class="method get">BASE</span><code id="baseUrlText">https://yourdomain.com/api/v1</code></div>
+
+    <h2 id="auth">Authentication</h2>
+    <p>Authenticate every request with your API key in the <code class="inline">x-api-key</code> header. Generate keys from the <a href="keys.html">API Keys</a> page.</p>
+    <div class="endpoint"><span class="method get">HEADER</span><code>x-api-key: sanatan-xxxxxxxxxxxx</code></div>
+
+    <div class="tabs" data-tabs="auth-example">
+      <button class="active" data-lang="curl">cURL</button>
+      <button data-lang="js">JavaScript</button>
+      <button data-lang="py">Python</button>
+    </div>
+    <div class="tab-panel active" data-tabs="auth-example" data-lang="curl">
+      <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
+<pre class="code">curl https://yourdomain.com/api/v1/gita/chapter/2/verse/47 \
+  -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
+    </div>
+    <div class="tab-panel" data-tabs="auth-example" data-lang="js">
+      <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">fetch.js</span></div>
+<pre class="code"><span class="k">const</span> res = <span class="k">await</span> <span class="f">fetch</span>(
+  <span class="s">"https://yourdomain.com/api/v1/gita/chapter/2/verse/47"</span>,
+  { headers: { <span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span> } }
+);
+<span class="k">const</span> data = <span class="k">await</span> res.<span class="f">json</span>();
+console.<span class="f">log</span>(data);</pre></div>
+    </div>
+    <div class="tab-panel" data-tabs="auth-example" data-lang="py">
+      <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">request.py</span></div>
+<pre class="code"><span class="k">import</span> requests
+
+res = requests.<span class="f">get</span>(
+    <span class="s">"https://yourdomain.com/api/v1/gita/chapter/2/verse/47"</span>,
+    headers={<span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span>},
+)
+<span class="f">print</span>(res.<span class="f">json</span>())</pre></div>
+    </div>
+
+    <h2 id="rate-limits">Rate limits</h2>
+    <p>The free tier allows <strong>1,000 requests per month</strong> at up to <strong>10 requests/second</strong>. Every response carries headers telling you where you stand:</p>
+    <div class="endpoint"><span class="method get">HEADER</span><code>X-RateLimit-Limit: 1000</code></div>
+    <div class="endpoint"><span class="method get">HEADER</span><code>X-RateLimit-Remaining: 987</code></div>
+    <div class="endpoint"><span class="method get">HEADER</span><code>X-RateLimit-Reset: 1735689600</code></div>
+    <p class="muted">Exceeding the limit returns <code class="inline">429 Too Many Requests</code>.</p>
+
+    <h2 id="endpoints">Endpoints</h2>
+    <div class="endpoint"><span class="method get">GET</span><code>/gita/chapters</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/gita/chapters/{id}</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/gita/chapters/{id}/verses/{verseId}</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/gita/random</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/vedas</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/vedas/{vedaName}</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/vedas/{vedaName}/mandala/{m}/sukta/{s}/mantra/{m}</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/search?q=agni</code></div>
+
+    <h3 id="gita">Bhagavad Gita</h3>
+    <p>List all 18 chapters, or fetch a chapter and its verses.</p>
+    <div class="tabs" data-tabs="gita-example">
+      <button class="active" data-lang="curl">cURL</button>
+      <button data-lang="js">JavaScript</button>
+      <button data-lang="py">Python</button>
+    </div>
+    <div class="tab-panel active" data-tabs="gita-example" data-lang="curl">
+      <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
+<pre class="code"><span class="c"># A random shlok</span>
+curl https://yourdomain.com/api/v1/gita/random \
+  -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
+    </div>
+    <div class="tab-panel" data-tabs="gita-example" data-lang="js">
+      <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">gita.js</span></div>
+<pre class="code"><span class="k">const</span> r = <span class="k">await</span> <span class="f">fetch</span>(<span class="s">"https://yourdomain.com/api/v1/gita/chapters/2"</span>, {
+  headers: { <span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span> },
+});
+<span class="k">const</span> chapter = <span class="k">await</span> r.<span class="f">json</span>();</pre></div>
+    </div>
+    <div class="tab-panel" data-tabs="gita-example" data-lang="py">
+      <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">gita.py</span></div>
+<pre class="code">res = requests.<span class="f">get</span>(
+    <span class="s">"https://yourdomain.com/api/v1/gita/random"</span>,
+    headers={<span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span>},
+)
+shlok = res.<span class="f">json</span>()</pre></div>
+    </div>
+
+    <h3 id="vedas">Vedas</h3>
+    <p>Browse a Veda, or drill down to a specific mantra by <span class="mono">mandala / sukta / mantra</span>.</p>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">vedas</span></div>
+<pre class="code"><span class="c"># List all Vedas</span>
+GET /vedas
+
+<span class="c"># One Veda</span>
+GET /vedas/rigveda
+
+<span class="c"># A specific mantra</span>
+GET /vedas/rigveda/mandala/1/sukta/1/mantra/1</pre></div>
+
+    <h3 id="search">Search</h3>
+    <p>Full-text search across Sanskrit, transliteration, and translations.</p>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
+<pre class="code">curl <span class="s">"https://yourdomain.com/api/v1/search?q=agni"</span> \
+  -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
+
+    <h2 id="response">Standard response format</h2>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">response.json</span></div>
+<pre class="code">{
+  <span class="s">"id"</span>: <span class="s">"gita_2_47"</span>,
+  <span class="s">"source"</span>: <span class="s">"Bhagavad Gita"</span>,
+  <span class="s">"sanskrit"</span>: <span class="s">"कर्मण्येवाधिकारस्ते..."</span>,
+  <span class="s">"transliteration"</span>: <span class="s">"karmanyevadhikaraste..."</span>,
+  <span class="s">"translations"</span>: { <span class="s">"hindi"</span>: <span class="s">"..."</span>, <span class="s">"english"</span>: <span class="s">"..."</span> },
+  <span class="s">"meaning"</span>: <span class="s">"..."</span>
+}</pre></div>
+
+    <h2 id="errors">Errors</h2>
+    <div class="endpoint"><span class="method get">401</span><code>Missing or invalid API key</code></div>
+    <div class="endpoint"><span class="method get">403</span><code>Key revoked or inactive</code></div>
+    <div class="endpoint"><span class="method get">404</span><code>Verse or chapter not found</code></div>
+    <div class="endpoint"><span class="method get">429</span><code>Rate limit exceeded</code></div>
+
+    <p class="muted mt-3">Errors return <code class="inline">{ "error": "message" }</code> with the matching HTTP status.</p>
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="brand"><img src="assets/om-logo.svg" alt="Om" style="width:28px;height:28px;" /><span>Sanatan API</span></div>
+    <div class="muted" style="font-size:.9rem;">Ancient Wisdom. Modern API.</div>
+  </div>
+</footer>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const S = window.Sanatan;
+
+  // Base URL text
+  document.getElementById("baseUrlText").textContent = S.cfg.PUBLIC_API_BASE;
+
+  // --- Tabs ---
+  document.querySelectorAll(".tabs").forEach(group => {
+    const name = group.getAttribute("data-tabs");
+    group.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        group.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+        document.querySelectorAll('.tab-panel[data-tabs="' + name + '"]').forEach(p => {
+          p.classList.toggle("active", p.getAttribute("data-lang") === btn.getAttribute("data-lang"));
+        });
+      });
+    });
+  });
+
+  // --- TOC active state on scroll ---
+  const tocLinks = Array.from(document.querySelectorAll(".docs-toc a"));
+  const heads = tocLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        tocLinks.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
+      }
+    });
+  }, { rootMargin: "-80px 0px -70% 0px" });
+  heads.forEach(h => io.observe(h));
+
+  // --- Auto-insert the user's API key into code snippets ---
+  (async function injectKey() {
+    const notice = document.getElementById("keyNotice");
+    let key = null;
+
+    // 1) A key generated this session is kept locally (never sent anywhere).
+    try { key = localStorage.getItem("sanatan_last_key"); } catch {}
+
+    // 2) If logged in, reflect that and update the navbar CTA.
+    const user = await S.getUser();
+    const cta = document.getElementById("navCta");
+    if (user) { cta.textContent = "Dashboard"; cta.setAttribute("href", "dashboard.html"); }
+
+    if (key) {
+      notice.textContent = "Logged in — your API key is filled into every snippet below.";
+      notice.style.display = "block";
+    } else {
+      key = "sanatan-xxxxxxxxxxxx";
+      if (user) {
+        notice.textContent = "Logged in. Generate a key on the API Keys page and it will appear here automatically.";
+        notice.style.display = "block";
+      }
+    }
+    document.querySelectorAll("pre.code").forEach(pre => {
+      pre.innerHTML = pre.innerHTML.replace(/\{\{API_KEY\}\}/g, S.esc(key));
+    });
+  })();
+})();
+</script>
+</body>
+</html>

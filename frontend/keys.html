@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>API Keys · Sanatan API</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="app">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="index.html"><img src="assets/om-logo.svg" alt="Om" /></a>
+    <nav class="side-tabs">
+      <a class="side-tab" href="dashboard.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a class="side-tab active" href="keys.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M17 12v4M21 12v3"/></svg>
+        API Keys
+      </a>
+      <a class="side-tab" href="docs.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 3v5h5"/></svg>
+        Docs
+      </a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-user" id="sideUser">…</div>
+      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn" type="button">Logout</button>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="app-main">
+    <div class="app-head">
+      <button class="btn btn-ghost btn-sm menu-toggle" id="menuToggle" type="button">☰</button>
+      <h1>API Keys</h1>
+      <span class="badge plan" id="planBadge" style="margin-left:auto;">Free tier</span>
+    </div>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="glass" style="margin-bottom:22px;">
+      <div class="flex between items-center wrap gap-2">
+        <div>
+          <h3 style="margin:0 0 4px;">Your keys</h3>
+          <p class="muted" style="margin:0;font-size:.92rem;">
+            You can hold up to <strong id="keyLimit">2</strong> keys on the free tier.
+            <span id="keyCount"></span>
+          </p>
+        </div>
+        <button class="btn btn-primary" id="generateBtn" type="button">+ Generate New Key</button>
+      </div>
+    </div>
+
+    <div class="glass" style="padding:0;">
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Key</th><th>Name</th><th>Created</th><th>Last Used</th><th>Status</th><th style="text-align:right;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="keysBody">
+            <tr><td colspan="6" class="muted" style="text-align:center;padding:30px;">Loading keys…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== Reveal modal ===== -->
+<div class="modal-overlay" id="revealModal">
+  <div class="modal">
+    <h3 style="margin-top:0;">Your new API key</h3>
+    <p class="muted" style="font-size:.94rem;">This key is shown <strong>only once</strong>. Copy and store it somewhere safe now.</p>
+    <div class="key-reveal">
+      <code id="revealKey">sanatan-…</code>
+      <button class="btn btn-primary btn-sm" id="copyKeyBtn" type="button">Copy</button>
+    </div>
+    <p class="warn-note">We store only a bcrypt hash. If you lose it, revoke it and generate a new one.</p>
+    <div class="cta-row" style="margin-top:20px;justify-content:flex-end;">
+      <button class="btn btn-ghost" id="closeModalBtn" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const S = window.Sanatan;
+  const msg = document.getElementById("msg");
+  const tbody = document.getElementById("keysBody");
+  const modal = document.getElementById("revealModal");
+  let keys = [];
+
+  S.wireSidebar();
+  document.getElementById("menuToggle").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+  document.getElementById("logoutBtn").addEventListener("click", () => S.logout());
+
+  function statusBadge(active) {
+    return active
+      ? '<span class="badge active">Active</span>'
+      : '<span class="badge revoked">Revoked</span>';
+  }
+
+  function render() {
+    document.getElementById("keyLimit").textContent = S.cfg.FREE_TIER_KEYS;
+    document.getElementById("keyCount").textContent = "(" + keys.filter(k => k.is_active).length + " active)";
+    const activeCount = keys.filter(k => k.is_active).length;
+    document.getElementById("generateBtn").disabled = activeCount >= S.cfg.FREE_TIER_KEYS;
+
+    if (!keys.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:30px;">No keys yet. Generate your first one above.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = keys.map(k => `
+      <tr>
+        <td class="mono">${S.esc(k.key_preview || S.maskKey(null, k.last_four))}</td>
+        <td>${S.esc(k.name || "Default")}</td>
+        <td class="muted">${S.fmtDate(k.created_at)}</td>
+        <td class="muted">${S.fmtRelative(k.last_used_at)}</td>
+        <td>${statusBadge(k.is_active)}</td>
+        <td style="text-align:right;">
+          ${k.is_active
+            ? `<button class="btn btn-danger btn-sm" data-revoke="${S.esc(k.id)}" type="button">Revoke</button>`
+            : '<span class="muted" style="font-size:.85rem;">—</span>'}
+        </td>
+      </tr>`).join("");
+
+    tbody.querySelectorAll("[data-revoke]").forEach(btn => {
+      btn.addEventListener("click", () => revoke(btn.getAttribute("data-revoke")));
+    });
+  }
+
+  async function load() {
+    try {
+      const data = await S.api("/api/keys");
+      keys = data.keys || [];
+      render();
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:30px;">Could not load keys. Is the backend running?</td></tr>';
+      S.showMsg(msg, e.message, "error");
+    }
+  }
+
+  async function generate() {
+    S.hideMsg(msg);
+    const name = prompt("Name this key (optional):", "My App");
+    if (name === null) return;
+    const btn = document.getElementById("generateBtn");
+    btn.disabled = true; btn.textContent = "Generating…";
+    try {
+      const data = await S.api("/api/keys/generate", { method: "POST", body: { name: name || "Default" } });
+      document.getElementById("revealKey").textContent = data.key;
+      // Keep the plaintext key locally only, so the Docs page can auto-fill it.
+      try { localStorage.setItem("sanatan_last_key", data.key); } catch {}
+      modal.classList.add("show");
+      await load();
+    } catch (e) {
+      S.showMsg(msg, e.message, "error");
+    } finally {
+      btn.textContent = "+ Generate New Key";
+      btn.disabled = keys.filter(k => k.is_active).length >= S.cfg.FREE_TIER_KEYS;
+    }
+  }
+
+  async function revoke(id) {
+    if (!confirm("Revoke this key? Apps using it will stop working immediately.")) return;
+    try {
+      await S.api("/api/keys/" + encodeURIComponent(id), { method: "DELETE" });
+      S.showMsg(msg, "Key revoked.", "ok");
+      await load();
+    } catch (e) {
+      S.showMsg(msg, e.message, "error");
+    }
+  }
+
+  document.getElementById("generateBtn").addEventListener("click", generate);
+  document.getElementById("copyKeyBtn").addEventListener("click", (e) => S.copyText(document.getElementById("revealKey").textContent, e.currentTarget));
+  document.getElementById("closeModalBtn").addEventListener("click", () => modal.classList.remove("show"));
+
+  // boot
+  (async function boot() {
+    const user = await S.requireAuth();
+    if (!user) return;
+    document.getElementById("sideUser").textContent = user.email || "";
+    await load();
+  })();
+})();
+</script>
+</body>
+</html>
