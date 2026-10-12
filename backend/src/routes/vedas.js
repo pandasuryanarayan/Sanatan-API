@@ -1,15 +1,25 @@
-// Veda endpoints (Rigveda, Yajurveda, Samaveda, Atharvaveda).
+// Veda endpoints — one lean table per Veda (no repeated data).
+// Veda names/totals live once in public.vedas; mantra row IDs
+// (rigveda_1_1_1) are built here, never stored.
 import { Router } from "express";
 import { supabaseAdmin } from "../config/supabase.js";
 
 const router = Router();
 
-const VEDAS = ["rigveda", "yajurveda", "samaveda", "atharvaveda"];
+// Public veda id -> mantra table. NEVER pass raw user input to .from() —
+// every handler validates req.params.vedaName against this map first.
+export const VEDA_TABLES = {
+  rigveda: "shloks_rigveda",
+  yajurveda: "shloks_yajurveda",
+  samaveda: "shloks_samaveda",
+  atharvaveda: "shloks_atharvaveda",
+};
+
+export const VEDA_IDS = Object.keys(VEDA_TABLES);
 
 // Canonical metadata lives in public.vedas (see backend/db/vedas.sql).
-// If that table is missing or empty, endpoints fall back to bare names
-// so the API keeps working.
-async function getVedasMap() {
+// Empty map = table not migrated yet; endpoints fall back to bare names.
+export async function getVedasMap() {
   try {
     const { data, error } = await supabaseAdmin.from("vedas").select("*");
     if (error) throw error;
@@ -21,11 +31,15 @@ async function getVedasMap() {
   }
 }
 
+export function vedaDisplay(id, meta) {
+  if (meta && meta.eng_name) return meta.eng_name;
+  return id.replace(/^\w/, (c) => c.toUpperCase());
+}
+
 function fmtVedaMeta(id, meta, available) {
-  const fallbackName = id.replace(/^\w/, (c) => c.toUpperCase());
   return {
     id,
-    eng_name: (meta && meta.eng_name) || fallbackName,
+    eng_name: vedaDisplay(id, meta),
     sanskrit_name: (meta && meta.sanskrit_name) || null,
     description: meta ? { en: meta.description_en, hi: meta.description_hi } : null,
     total_mantras: (meta && meta.total_mantras) || null,
@@ -33,55 +47,61 @@ function fmtVedaMeta(id, meta, available) {
   };
 }
 
-function fmtVeda(row) {
+export function fmtMantra(veda, displayName, row) {
   return {
-    id: `${row.veda_name}_${row.mandala}_${row.sukta}_${row.mantra}`,
-    source: row.veda_name.replace(/^\w/, (c) => c.toUpperCase()),
-    veda: row.veda_name,
+    id: `${veda}_${row.mandala}_${row.sukta}_${row.mantra}`,
+    source: displayName,
+    veda,
     mandala: row.mandala,
     sukta: row.sukta,
     mantra: row.mantra,
     sanskrit: row.sanskrit,
     transliteration: row.transliteration,
-    translations: { english: row.translation },
-    meaning: row.translation,
+    translations: { hindi: row.hindi, english: row.english },
+    meaning: row.english ?? row.hindi ?? null,
   };
 }
 
-// GET /vedas — list the four Vedas with available mantra counts.
+// GET /vedas — list the four Vedas with metadata + loaded counts.
 router.get("/", async (_req, res, next) => {
   try {
-    const [{ data, error }, meta] = await Promise.all([
-      supabaseAdmin.from("shloks_vedas").select("veda_name"),
+    const [counts, meta] = await Promise.all([
+      Promise.all(
+        VEDA_IDS.map(async (v) => {
+          const { count, error } = await supabaseAdmin
+            .from(VEDA_TABLES[v])
+            .select("id", { count: "exact", head: true });
+          if (error) throw error;
+          return [v, count || 0];
+        })
+      ).then((entries) => Object.fromEntries(entries)),
       getVedasMap(),
     ]);
-    if (error) throw error;
-    const counts = {};
-    (data || []).forEach((r) => { counts[r.veda_name] = (counts[r.veda_name] || 0) + 1; });
-    res.json({
-      vedas: VEDAS.map((v) => fmtVedaMeta(v, meta.get(v), counts[v] || 0)),
-    });
+    res.json({ vedas: VEDA_IDS.map((v) => fmtVedaMeta(v, meta.get(v), counts[v] || 0)) });
   } catch (e) { next(e); }
 });
 
-// GET /vedas/:vedaName — browse a single Veda.
+// GET /vedas/:vedaName — browse mantras, ordered (limit/offset paging).
 router.get("/:vedaName", async (req, res, next) => {
   try {
     const veda = req.params.vedaName.toLowerCase();
-    if (!VEDAS.includes(veda)) return res.status(404).json({ error: "Veda not found" });
+    const table = VEDA_TABLES[veda];
+    if (!table) return res.status(404).json({ error: "Veda not found" });
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+    const offset = Math.max(Number(req.query.offset) || 0, 0);
     const [{ data, error }, meta] = await Promise.all([
       supabaseAdmin
-        .from("shloks_vedas")
-        .select("*")
-        .eq("veda_name", veda)
+        .from(table)
+        .select("mandala,sukta,mantra,sanskrit,transliteration,english,hindi")
         .order("mandala", { ascending: true })
         .order("sukta", { ascending: true })
         .order("mantra", { ascending: true })
-        .limit(50),
+        .range(offset, offset + limit - 1),
       getVedasMap(),
     ]);
     if (error) throw error;
-    const info = fmtVedaMeta(veda, meta.get(veda), 0);
+    const m = meta.get(veda);
+    const info = fmtVedaMeta(veda, m, 0);
     res.json({
       id: veda,
       source: info.eng_name,
@@ -89,8 +109,10 @@ router.get("/:vedaName", async (req, res, next) => {
       sanskrit_name: info.sanskrit_name,
       description: info.description,
       total_mantras: info.total_mantras,
+      limit,
+      offset,
       mantras_available: (data || []).length,
-      mantras: (data || []).map(fmtVeda),
+      mantras: (data || []).map((r) => fmtMantra(veda, info.eng_name, r)),
     });
   } catch (e) { next(e); }
 });
@@ -99,18 +121,22 @@ router.get("/:vedaName", async (req, res, next) => {
 router.get("/:vedaName/mandala/:m/sukta/:s/mantra/:mm", async (req, res, next) => {
   try {
     const veda = req.params.vedaName.toLowerCase();
+    const table = VEDA_TABLES[veda];
+    if (!table) return res.status(404).json({ error: "Veda not found" });
     const { m, s, mm } = req.params;
-    const { data, error } = await supabaseAdmin
-      .from("shloks_vedas")
-      .select("*")
-      .eq("veda_name", veda)
-      .eq("mandala", Number(m))
-      .eq("sukta", Number(s))
-      .eq("mantra", Number(mm))
-      .maybeSingle();
+    const [{ data, error }, meta] = await Promise.all([
+      supabaseAdmin
+        .from(table)
+        .select("*")
+        .eq("mandala", Number(m))
+        .eq("sukta", Number(s))
+        .eq("mantra", Number(mm))
+        .maybeSingle(),
+      getVedasMap(),
+    ]);
     if (error) throw error;
     if (!data) return res.status(404).json({ error: "Mantra not found" });
-    res.json(fmtVeda(data));
+    res.json(fmtMantra(veda, vedaDisplay(veda, meta.get(veda)), data));
   } catch (e) { next(e); }
 });
 

@@ -14,14 +14,14 @@ Built with a decoupled **Node.js + Express backend (Supabase + Redis)** and a de
 
 ## ✨ Features
 
-- 📜 **Gita + 4 Vedas** — 700 Gita verses, Rigveda, Yajurveda, Samaveda, Atharvaveda as versioned JSON.
+- 📜 **Gita + 4 Vedas** — 701 Gita verses, 10,552 Rigveda mantras (more Vedas loading), served as clean JSON.
 - 🔑 **Hashed API keys** — `sanatan-` prefixed keys, bcrypt-verified, SHA-256 lookup, shown once, revocable.
 - 🚦 **Rate limiting + quotas** — per-second burst + monthly quota via Redis (Upstash) with in-memory dev fallback. Standard `X-RateLimit-*` headers.
-- 📊 **Developer dashboard** — key management, usage stats, 7-day chart, recent-call log.
+- 📊 **Live developer dashboard** — stats, 7-day chart and recent-call log auto-refresh every 20s (with countdown), no page reload.
 - 📖 **Stripe-style docs** — auto-fills the logged-in user's key into every code sample (cURL / JS).
-- 🕉 **Auth flow** — Supabase email auth with verification (`welcome.html` success screen).
+- 🕉 **Auth flow** — Supabase email auth with verification + forgot-password reset (`welcome.html`, `reset.html`).
 - 🎨 **Glossy static UI** — no build step. Host the `frontend/` folder anywhere.
-- 🧩 **Extensible schema** — Upanishads / Ramayana / Puranas fit as new `source` values + route groups.
+- 🧩 **Extensible schema** — Upanishads / Ramayana / Puranas fit as new tables + route groups.
 
 ---
 
@@ -29,10 +29,12 @@ Built with a decoupled **Node.js + Express backend (Supabase + Redis)** and a de
 
 ```text
 sanatan-api/
-├── verses.json                 # Full Gita corpus (701 verses, source for import)
+├── verses.json                 # Gita corpus (701 verses, source for import)
 ├── chapters_summary.json       # 18 chapter names + EN/HI summaries (source for import)
 ├── chapters.json               # Chapter index (verse counts)
-├── frontend/                 # Static site — host anywhere (Netlify, Vercel, S3, nginx)
+├── vedas.json                  # 4 Veda names + EN/HI descriptions + canonical totals
+├── rigveda.json                # Rigveda corpus (10,552 mantras, source for import)
+├── frontend/                   # Static site — host anywhere (Netlify, Vercel, S3, nginx)
 │   ├── index.html            # Landing: hero, code preview, how-it-works, scriptures
 │   ├── login.html            # Register / login (Supabase email + verification)
 │   ├── reset.html            # Set-new-password (landing page for reset emails)
@@ -53,11 +55,13 @@ sanatan-api/
     ├── package.json
     ├── .env.example          # Copy to .env and fill in (git-ignored)
     ├── db/
-    │   ├── schema.sql        # Tables, indexes, RLS, signup trigger
-    │   ├── seed.sql          # Starter Gita + Rigveda sample rows
-    │   ├── gita_chapters.sql  # gita_chapters table + 18 real chapters (run once in SQL Editor)
-    │   ├── vedas.sql          # vedas table + 4 canonical totals (run once in SQL Editor)
-    │   └── import_gita.js    # Upserts verses.json → shloks_gita (run: `node db/import_gita.js`)
+    │   ├── schema.sql        # Base tables, indexes, RLS, signup trigger
+    │   ├── seed.sql          # Starter sample rows (day-one data)
+    │   ├── gita_chapters.sql # gita_chapters table + 18 real chapters (run once in SQL Editor)
+    │   ├── vedas.sql         # vedas table + 4 canonical totals (run once in SQL Editor)
+    │   ├── vedas_tables.sql  # shloks_rigveda/yajurveda/samaveda/atharvaveda + trigram indexes; retires shloks_vedas
+    │   ├── import_gita.js    # Upserts verses.json → shloks_gita (run: `node db/import_gita.js`)
+    │   └── import_vedas.js   # Wipe + load: `node db/import_vedas.js <rigveda|yajurveda|samaveda|atharvaveda>`
     └── src/
         ├── config/supabase.js  # Admin client + tier limits
         ├── config/redis.js     # Upstash Redis with in-memory fallback
@@ -81,8 +85,11 @@ sanatan-api/
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run in order:
-   - `backend/db/schema.sql`
-   - `backend/db/seed.sql`
+   - `backend/db/schema.sql` (base tables)
+   - `backend/db/seed.sql` (starter samples)
+   - `backend/db/gita_chapters.sql` (18 chapter metadata rows)
+   - `backend/db/vedas.sql` (4 Veda metadata rows)
+   - `backend/db/vedas_tables.sql` (per-Veda mantra tables + search indexes)
 3. **Authentication → Providers → Email** → enable email confirmation.
 4. **Authentication → URL Configuration** → allow-list your redirects, e.g.:
    - `http://localhost:5500/welcome.html`
@@ -164,8 +171,8 @@ curl https://yourdomain.com/api/v1/gita/chapters/2/verses/47 \
 | GET | `/gita/chapters/{id}` | Chapter meta + ordered verses |
 | GET | `/gita/chapters/{id}/verses/{verseId}` | Single verse (e.g. `/gita/chapters/2/verses/47`) |
 | GET | `/gita/random` | Random verse |
-| GET | `/vedas` | Four Vedas with `mantras_available` counts |
-| GET | `/vedas/{vedaName}` | Browse one Veda (`rigveda` \| `yajurveda` \| `samaveda` \| `atharvaveda`, first 50) |
+| GET | `/vedas` | Four Vedas with metadata, canonical totals + `mantras_available` |
+| GET | `/vedas/{vedaName}` | Browse one Veda (`rigveda` \| `yajurveda` \| `samaveda` \| `atharvaveda`, `?limit=` default 50 max 200, `?offset=`) |
 | GET | `/vedas/{vedaName}/mandala/{m}/sukta/{s}/mantra/{mm}` | Single mantra |
 | GET | `/search?q=agni&limit=20` | Full-text-ish search across Gita + Vedas (max `limit=50`) |
 
@@ -205,7 +212,7 @@ Veda mantra:
   "mandala": 1, "sukta": 1, "mantra": 1,
   "sanskrit": "...",
   "transliteration": "...",
-  "translations": { "english": "..." },
+  "translations": { "hindi": "...", "english": "..." },
   "meaning": "..."
 }
 ```
@@ -273,12 +280,24 @@ Chapter response shape (`GET /gita/chapters`, `GET /gita/chapters/{id}`):
 }
 ```
 
-For the Vedas, bulk-import from an authoritative, attributable source into:
+For the Vedas, load each corpus with its matching script (wipes + reloads that
+Veda's table, so re-running is safe):
 
-- `shloks_gita (chapter, verse, sanskrit, transliteration, hindi, english, meaning)` — unique `(chapter, verse)`
-- `shloks_vedas (veda_name, mandala, sukta, mantra, sanskrit, transliteration, translation)` — unique `(veda_name, mandala, sukta, mantra)`
+```bash
+# 1. Metadata — paste backend/db/vedas.sql into the SQL Editor (4 rows).
+# 2. Mantra tables — paste backend/db/vedas_tables.sql (creates the 4
+#    shloks_* tables + trigram search indexes; migrates legacy demo rows).
+# 3. Mantras — from backend/ (uses .env credentials):
+node db/import_vedas.js rigveda --dry-run   # validate, touches nothing
+node db/import_vedas.js rigveda              # loads rigveda.json (10,552 rows)
+```
 
-Schema, indexes, and endpoints already match — no code change needed. Keep translations attributed to their source.
+One lean table per Veda (`shloks_rigveda`, `shloks_yajurveda`,
+`shloks_samaveda`, `shloks_atharvaveda`), each `(mandala, sukta, mantra,
+sanskrit, transliteration, english, hindi)` with a trigram index for search.
+Veda names/totals live once in `vedas`; row IDs (`rigveda_1_1_1`) are built
+in code, never stored. Browse supports `?limit=` (default 50, max 200) +
+`?offset=`. Keep translations attributed to their source.
 
 ---
 
