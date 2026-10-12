@@ -1,0 +1,20 @@
+[
+  { "chapter_number": 1, "eng_name": "Arjuna Visada Yoga", "sanskrit_name": "अर्जुन विषाद योग", "verses_count": 47, "translation": "Arjuna's Dilemma" },
+  { "chapter_number": 2, "eng_name": "Sankhya Yoga", "sanskrit_name": "सांख्य योग", "verses_count": 72, "translation": "Transcendental Knowledge" },
+  { "chapter_number": 3, "eng_name": "Karma Yoga", "sanskrit_name": "कर्म योग", "verses_count": 43, "translation": "Path of Action" },
+  { "chapter_number": 4, "eng_name": "Jnana Karma Sanyasa Yoga", "sanskrit_name": "ज्ञान कर्म संन्यास योग", "verses_count": 42, "translation": "Knowledge and Renunciation of Action" },
+  { "chapter_number": 5, "eng_name": "Karma Sanyasa Yoga", "sanskrit_name": "कर्म संन्यास योग", "verses_count": 29, "translation": "Path of Renunciation" },
+  { "chapter_number": 6, "eng_name": "Dhyana Yoga", "sanskrit_name": "ध्यान योग", "verses_count": 47, "translation": "Path of Meditation" },
+  { "chapter_number": 7, "eng_name": "Jnana Vijnana Yoga", "sanskrit_name": "ज्ञान विज्ञान योग", "verses_count": 30, "translation": "Self-Knowledge and Enlightenment" },
+  { "chapter_number": 8, "eng_name": "Aksara Brahma Yoga", "sanskrit_name": "अक्षर ब्रह्म योग", "verses_count": 28, "translation": "Path of the Eternal God" },
+  { "chapter_number": 9, "eng_name": "Raja Vidya Raja Guhya Yoga", "sanskrit_name": "राज विद्या राज गुह्य योग", "verses_count": 34, "translation": "King of Sciences and King of Secrets" },
+  { "chapter_number": 10, "eng_name": "Vibhuti Yoga", "sanskrit_name": "विभूति योग", "verses_count": 42, "translation": "The Infinite Glories of the Supreme" },
+  { "chapter_number": 11, "eng_name": "Vishwarupa Darshana Yoga", "sanskrit_name": "विश्वरूप दर्शन योग", "verses_count": 55, "translation": "The Vision of the Cosmic Form" },
+  { "chapter_number": 12, "eng_name": "Bhakti Yoga", "sanskrit_name": "भक्ति योग", "verses_count": 20, "translation": "The Path of Devotion" },
+  { "chapter_number": 13, "eng_name": "Kshetra Kshetrajna Vibhaga Yoga", "sanskrit_name": "क्षेत्र क्षेत्रज्ञ विभाग योग", "verses_count": 35, "translation": "The Field and the Knower of the Field" },
+  { "chapter_number": 14, "eng_name": "Gunatraya Vibhaga Yoga", "sanskrit_name": "गुणत्रय विभाग योग", "verses_count": 27, "translation": "The Three Gunas of Material Nature" },
+  { "chapter_number": 15, "eng_name": "Purushottama Yoga", "sanskrit_name": "पुरुषोत्तम योग", "verses_count": 20, "translation": "The Supreme Divine Person" },
+  { "chapter_number": 16, "eng_name": "Daivasura Sampad Vibhaga Yoga", "sanskrit_name": "दैवासुर सम्पद् विभाग योग", "verses_count": 24, "translation": "The Divine and Demoniac Natures" },
+  { "chapter_number": 17, "eng_name": "Sraddhatraya Vibhaga Yoga", "sanskrit_name": "श्रद्धात्रय विभाग योग", "verses_count": 28, "translation": "The Three Divisions of Faith" },
+  { "chapter_number": 18, "eng_name": "Moksha Sanyasa Yoga", "sanskrit_name": "मोक्ष संन्यास योग", "verses_count": 78, "translation": "Liberation through Renunciation" }
+]

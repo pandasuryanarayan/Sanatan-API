@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Set new password · Sanatan API</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<div class="auth-wrap">
+  <div class="glass glass-strong auth-card">
+    <a class="brand" href="index.html">
+      <img src="assets/om-logo.svg" alt="Om" style="width:40px;height:40px;" />
+      <span>Sanatan API</span>
+    </a>
+    <p class="center muted" style="margin-bottom:22px;">Choose a new password.</p>
+
+    <div id="msg" class="msg"></div>
+
+    <form id="resetForm" class="hidden">
+      <div class="field">
+        <label for="newPassword">New password</label>
+        <input id="newPassword" type="password" autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required />
+      </div>
+      <div class="field">
+        <label for="confirmPassword">Confirm new password</label>
+        <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password" minlength="8" required />
+      </div>
+      <button class="btn btn-primary btn-block" type="submit" id="resetBtn">Set new password</button>
+    </form>
+
+    <p class="center muted" style="margin:14px 0 0;font-size:.9rem;">
+      <a href="login.html">Back to login</a>
+    </p>
+  </div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js"></script>
+<script>
+(function () {
+  const S = window.Sanatan;
+  const sb = S.getClient();
+  const msg = document.getElementById("msg");
+  const form = document.getElementById("resetForm");
+
+  if (!sb) { S.showMsg(msg, "Supabase is not configured. Fill in assets/config.js.", "error"); return; }
+
+  // supabase-js reads the recovery tokens from the URL hash automatically
+  // when the client is created. Without a session the link is invalid/expired.
+  sb.auth.getSession().then(({ data }) => {
+    if (data && data.session) {
+      form.classList.remove("hidden");
+    } else {
+      S.showMsg(msg, "This reset link is invalid or expired. Go back to login and request a new one.", "error");
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    S.hideMsg(msg);
+    const pwd = document.getElementById("newPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    if (pwd !== confirm) { S.showMsg(msg, "Passwords do not match.", "error"); return; }
+
+    const btn = document.getElementById("resetBtn");
+    btn.disabled = true; btn.textContent = "Saving…";
+    const { error } = await sb.auth.updateUser({ password: pwd });
+    btn.disabled = false; btn.textContent = "Set new password";
+    if (error) { S.showMsg(msg, error.message, "error"); return; }
+
+    // Sign out the recovery session so the next login proves the new password.
+    await sb.auth.signOut();
+    S.showMsg(msg, "Password updated. Please log in with your new password.", "ok");
+    form.reset();
+    setTimeout(() => { window.location.href = "login.html"; }, 1800);
+  });
+})();
+</script>
+</body>
+</html>

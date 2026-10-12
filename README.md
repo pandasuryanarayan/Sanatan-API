@@ -29,9 +29,13 @@ Built with a decoupled **Node.js + Express backend (Supabase + Redis)** and a de
 
 ```text
 sanatan-api/
+├── verses.json                 # Full Gita corpus (701 verses, source for import)
+├── chapters_summary.json       # 18 chapter names + EN/HI summaries (source for import)
+├── chapters.json               # Chapter index (verse counts)
 ├── frontend/                 # Static site — host anywhere (Netlify, Vercel, S3, nginx)
 │   ├── index.html            # Landing: hero, code preview, how-it-works, scriptures
 │   ├── login.html            # Register / login (Supabase email + verification)
+│   ├── reset.html            # Set-new-password (landing page for reset emails)
 │   ├── welcome.html          # "Verification Successful" screen
 │   ├── dashboard.html        # Stats, Chart.js usage graph, recent calls
 │   ├── keys.html             # Generate / revoke API keys
@@ -40,16 +44,19 @@ sanatan-api/
 │   └── assets/
 │       ├── style.css         # Spiritual Glossy design system
 │       ├── app.js            # Shared auth / API / UI helpers
-│       ├── config.js         # ← Supabase + backend URLs (edit this)
+│       ├── config.js         # ← Supabase + backend URLs (edit this — git-ignored, see config.example.js)
+│       ├── config.example.js # Safe template for `config.js`
 │       ├── om-logo.svg       # Golden Om logo (dark glyph on gold disc)
 │       └── favicon.svg
 └── backend/                  # Node + Express — host anywhere (Render, Railway, Fly, VPS)
     ├── server.js             # Express entrypoint, CORS, /health, route mounts
     ├── package.json
-    ├── .env.example          # Copy to .env and fill in
+    ├── .env.example          # Copy to .env and fill in (git-ignored)
     ├── db/
     │   ├── schema.sql        # Tables, indexes, RLS, signup trigger
-    │   └── seed.sql          # Starter Gita + Rigveda sample rows
+    │   ├── seed.sql          # Starter Gita + Rigveda sample rows
+    │   ├── migrate_gita_chapters.sql  # gita_chapters table + 18 real chapters (run once in SQL Editor)
+    │   └── import_gita.js    # Upserts verses.json → shloks_gita (run: `node db/import_gita.js`)
     └── src/
         ├── config/supabase.js  # Admin client + tier limits
         ├── config/redis.js     # Upstash Redis with in-memory fallback
@@ -78,7 +85,9 @@ sanatan-api/
 3. **Authentication → Providers → Email** → enable email confirmation.
 4. **Authentication → URL Configuration** → allow-list your redirects, e.g.:
    - `http://localhost:5500/welcome.html`
+   - `http://localhost:5500/reset.html`
    - `https://yourdomain.com/welcome.html`
+   - `https://yourdomain.com/reset.html`
 5. **Project Settings → API** → copy:
    - Project URL → frontend + backend
    - `anon` key → frontend only
@@ -110,7 +119,8 @@ Health check: `GET http://localhost:8080/health` → `{ "ok": true }`.
 
 No build step — plain static files.
 
-1. Edit `frontend/assets/config.js`:
+1. Copy `frontend/assets/config.example.js` to `frontend/assets/config.js` and edit it
+   (`config.js` is git-ignored — never commit it):
 
 ```js
 window.SANATAN_CONFIG = {
@@ -226,7 +236,43 @@ X-RateLimit-Reset: 1728576000
 
 ## 📦 Loading the full corpora
 
-`seed.sql` ships a small verified sample. For the complete Gita (700 verses) and Vedas, bulk-import from an authoritative, attributable source into:
+`seed.sql` ships a small verified sample. The real Gita data lives in
+`verses.json` (701 verses) + `chapters_summary.json` (18 chapters) at the repo root.
+Load them into Supabase once — upserts, so re-running is safe and demo rows get
+overwritten:
+
+```bash
+# 1. Chapter metadata — paste backend/db/migrate_gita_chapters.sql
+#    into the Supabase SQL Editor and run it (creates gita_chapters, 18 rows).
+
+# 2. Verses — from backend/ (uses .env credentials):
+node db/import_gita.js --dry-run   # validate mapping, touches nothing
+node db/import_gita.js              # upserts 701 rows into shloks_gita
+```
+
+Column mapping (`verses.json` → `shloks_gita`):
+`sloka→sanskrit`, `transliteration→transliteration`,
+`meaning.hi→hindi`, `meaning.en→english + meaning`.
+Unique key `(chapter, verse)` — no code change needed; `GET /gita/*`
+serves chapter names/summaries from `gita_chapters` automatically
+(falls back to `Chapter N` if the table isn't migrated yet).
+
+Chapter response shape (`GET /gita/chapters`, `GET /gita/chapters/{id}`):
+
+```json
+{
+  "id": 2,
+  "chapter_number": 2,
+  "eng_name": "Sankhya Yoga",
+  "sanskrit_name": "सांख्य योग",
+  "meaning": { "en": "...", "hi": "..." },
+  "summary": { "en": "...", "hi": "..." },
+  "verses_count": 72,
+  "verses_available": 72
+}
+```
+
+For the Vedas, bulk-import from an authoritative, attributable source into:
 
 - `shloks_gita (chapter, verse, sanskrit, transliteration, hindi, english, meaning)` — unique `(chapter, verse)`
 - `shloks_vedas (veda_name, mandala, sukta, mantra, sanskrit, transliteration, translation)` — unique `(veda_name, mandala, sukta, mantra)`
