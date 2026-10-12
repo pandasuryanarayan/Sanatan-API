@@ -45,7 +45,9 @@
     <div class="app-head">
       <button class="btn btn-ghost btn-sm menu-toggle" id="menuToggle" type="button">☰</button>
       <h1>Dashboard</h1>
-      <span class="badge plan" id="planBadge" style="margin-left:auto;">Free tier</span>
+      <span class="badge" id="liveBadge" title="Stats auto-refresh every 20s" style="margin-left:auto;">Live · —</span>
+      <span class="badge" id="refreshIn" title="Next auto-refresh in">↻ 20s</span>
+      <span class="badge plan" id="planBadge">Free tier</span>
     </div>
 
     <div id="msg" class="msg"></div>
@@ -100,7 +102,29 @@
   const S = window.Sanatan;
   const msg = document.getElementById("msg");
   const callsBody = document.getElementById("callsBody");
+  const liveBadge = document.getElementById("liveBadge");
+  const refreshBadge = document.getElementById("refreshIn");
   let chart = null;
+
+  const REFRESH_MS = 20000;
+  let timer = null;
+  let inFlight = false;
+  let countdownSec = REFRESH_MS / 1000;
+
+  function stampLive() {
+    if (!liveBadge) return;
+    liveBadge.textContent = "Live · " + new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+
+  function paintCountdown() {
+    if (!refreshBadge) return;
+    refreshBadge.textContent = "↻ " + Math.max(countdownSec, 0) + "s";
+  }
+
+  function resetCountdown() {
+    countdownSec = REFRESH_MS / 1000;
+    paintCountdown();
+  }
 
   S.wireSidebar();
   document.getElementById("menuToggle").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
@@ -172,12 +196,46 @@
       const daily = d.daily || [];
       drawChart(daily.map(x => x.date), daily.map(x => x.count));
       renderCalls(d.recent);
+      S.hideMsg(msg);
+      stampLive();
     } catch (e) {
       S.showMsg(msg, e.message + " — is the backend running?", "error");
       // graceful empty chart
       drawChart([], []);
       renderCalls([]);
     }
+  }
+
+  // Refresh without a page reload. Skips while a fetch is in flight
+  // or the tab is hidden (browsers throttle hidden tabs anyway).
+  // Every successful refresh restarts the visible 20s countdown.
+  async function tick() {
+    if (document.hidden || inFlight) return;
+    inFlight = true;
+    try { await load(); } finally { inFlight = false; resetCountdown(); }
+  }
+
+  // 1s driver: counts 20→0 on screen; fires the refresh at zero.
+  function second() {
+    if (document.hidden) return;
+    if (countdownSec <= 0) return; // refresh already running, wait for it
+    countdownSec--;
+    if (countdownSec <= 0) tick();
+    else paintCountdown();
+  }
+
+  function startAutoRefresh() {
+    stopAutoRefresh();
+    resetCountdown();
+    timer = setInterval(second, 1000);
+    document.addEventListener("visibilitychange", tick);
+    window.addEventListener("pagehide", stopAutoRefresh);
+  }
+
+  function stopAutoRefresh() {
+    if (timer) { clearInterval(timer); timer = null; }
+    document.removeEventListener("visibilitychange", tick);
+    window.removeEventListener("pagehide", stopAutoRefresh);
   }
 
   (async function boot() {
@@ -188,6 +246,7 @@
     sideAvatar.textContent = S.getInitial(user);
     document.getElementById("sideProfile").title = S.getDisplayName(user) || user.email || "Profile";
     await load();
+    startAutoRefresh();
   })();
 })();
 </script>
