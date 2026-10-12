@@ -1,0 +1,36 @@
+{
+  "vedas": [
+    {
+      "id": "rigveda",
+      "eng_name": "Rigveda",
+      "sanskrit_name": "ऋग्वेद",
+      "mantras_available": 10552,
+      "eng_desc": "The oldest Veda, consisting of hymns dedicated to various deities and cosmic order.",
+      "hi_desc": "सबसे पुराना वेद, जिसमें विभिन्न देवताओं और ब्रह्मांडीय व्यवस्था को समर्पित भजन शामिल हैं।"
+    },
+    {
+      "id": "yajurveda",
+      "eng_name": "Yajurveda",
+      "sanskrit_name": "यजुर्वेद",
+      "mantras_available": 1975,
+      "eng_desc": "The Veda of rituals and mantras used by priests during sacrificial ceremonies.",
+      "hi_desc": "यज्ञ और कर्मकांडों का वेद, जिसमें पुरोहितों द्वारा अनुष्ठानों के दौरान उपयोग किए जाने वाले मंत्र हैं।"
+    },
+    {
+      "id": "samaveda",
+      "eng_name": "Samaveda",
+      "sanskrit_name": "सामवेद",
+      "mantras_available": 1875,
+      "eng_desc": "The Veda of melodies and chants, highly focused on musical recitation.",
+      "hi_desc": "धुनों और भजनों का वेद, जो मुख्य रूप से संगीत के उच्चारण पर केंद्रित है।"
+    },
+    {
+      "id": "atharvaveda",
+      "eng_name": "Atharvaveda",
+      "sanskrit_name": "अथर्ववेद",
+      "mantras_available": 5977,
+      "eng_desc": "The Veda of everyday procedures, containing spells, prayers, and charms for daily life.",
+      "hi_desc": "दैनिक जीवन की प्रक्रियाओं का वेद, जिसमें दैनिक जीवन के लिए मंत्र, प्रार्थनाएं और टोटके शामिल हैं।"
+    }
+  ]
+}

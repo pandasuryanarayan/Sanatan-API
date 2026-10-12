@@ -56,6 +56,7 @@ sanatan-api/
     │   ├── schema.sql        # Tables, indexes, RLS, signup trigger
     │   ├── seed.sql          # Starter Gita + Rigveda sample rows
     │   ├── gita_chapters.sql  # gita_chapters table + 18 real chapters (run once in SQL Editor)
+    │   ├── vedas.sql          # vedas table + 4 canonical totals (run once in SQL Editor)
     │   └── import_gita.js    # Upserts verses.json → shloks_gita (run: `node db/import_gita.js`)
     └── src/
         ├── config/supabase.js  # Admin client + tier limits
