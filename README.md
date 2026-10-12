@@ -55,7 +55,7 @@ sanatan-api/
     ├── db/
     │   ├── schema.sql        # Tables, indexes, RLS, signup trigger
     │   ├── seed.sql          # Starter Gita + Rigveda sample rows
-    │   ├── migrate_gita_chapters.sql  # gita_chapters table + 18 real chapters (run once in SQL Editor)
+    │   ├── gita_chapters.sql  # gita_chapters table + 18 real chapters (run once in SQL Editor)
     │   └── import_gita.js    # Upserts verses.json → shloks_gita (run: `node db/import_gita.js`)
     └── src/
         ├── config/supabase.js  # Admin client + tier limits
@@ -242,7 +242,7 @@ Load them into Supabase once — upserts, so re-running is safe and demo rows ge
 overwritten:
 
 ```bash
-# 1. Chapter metadata — paste backend/db/migrate_gita_chapters.sql
+# 1. Chapter metadata — paste backend/db/gita_chapters.sql
 #    into the Supabase SQL Editor and run it (creates gita_chapters, 18 rows).
 
 # 2. Verses — from backend/ (uses .env credentials):

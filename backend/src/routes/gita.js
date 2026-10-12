@@ -7,7 +7,7 @@ const router = Router();
 const GITA_CHAPTERS = 18;
 
 // Chapter metadata lives in public.gita_chapters (see
-// backend/db/migrate_gita_chapters.sql). If that table is missing or empty
+// backend/db/gita_chapters.sql). If that table is missing or empty
 // (fresh clone with only schema.sql), endpoints fall back to "Chapter N"
 // so the API keeps working.
 async function getChaptersMap() {

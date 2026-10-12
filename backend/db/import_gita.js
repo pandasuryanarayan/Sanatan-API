@@ -84,4 +84,4 @@ if (error) {
   process.exit(1);
 }
 console.log(`Done. shloks_gita now holds ${count} rows (expected >= ${rows.length}).`);
-console.log("Next: run backend/db/migrate_gita_chapters.sql in Supabase SQL Editor for chapter names/summaries.");
+console.log("Next: run backend/db/gita_chapters.sql in Supabase SQL Editor for chapter names/summaries.");
