@@ -43,6 +43,8 @@
   }
 
   /* ---------- Backend API helper (Bearer = Supabase access token) ---------- */
+  // options.timeout (ms) aborts slow requests — e.g. the dashboard passes
+  // 10000 so a stalled poll fails fast instead of overlapping the next one.
   async function api(path, options = {}) {
     const c = getClient();
     let token = "";
@@ -50,24 +52,34 @@
       const { data } = await c.auth.getSession();
       token = data && data.session ? data.session.access_token : "";
     }
-    const res = await fetch(CFG.API_BASE + path, {
-      method: options.method || "GET",
-      headers: Object.assign(
-        { "Content-Type": "application/json", Authorization: "Bearer " + token },
-        options.headers || {}
-      ),
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
-    if (!res.ok) {
-      const err = new Error((data && data.error) || "Request failed (" + res.status + ")");
-      err.status = res.status;
-      err.data = data;
-      throw err;
+    const ctrl = new AbortController();
+    const killer = options.timeout ? setTimeout(() => ctrl.abort(), options.timeout) : null;
+    try {
+      const res = await fetch(CFG.API_BASE + path, {
+        method: options.method || "GET",
+        headers: Object.assign(
+          { "Content-Type": "application/json", Authorization: "Bearer " + token },
+          options.headers || {}
+        ),
+        body: options.body ? JSON.stringify(options.body) : undefined,
+        signal: ctrl.signal,
+      });
+      const text = await res.text();
+      let data;
+      try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+      if (!res.ok) {
+        const err = new Error((data && data.error) || "Request failed (" + res.status + ")");
+        err.status = res.status;
+        err.data = data;
+        throw err;
+      }
+      return data;
+    } catch (e) {
+      if (e && e.name === "AbortError") throw new Error("Request timed out — slow network?");
+      throw e;
+    } finally {
+      if (killer) clearTimeout(killer);
     }
-    return data;
   }
 
   /* ---------- UI utils ---------- */

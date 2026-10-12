@@ -42,7 +42,7 @@ export async function apiKeyAuth(req, res, next) {
   const mk = monthKey();
   const monthCount = await incrWithTTL(`usage:${row.id}:${mk}`, 32 * 24 * 3600);
   if (monthCount > TIER.monthly) {
-    return res.status(429).json({ error: "Monthly quota exceeded. Upgrade for more." });
+    return res.status(429).json({ error: "Monthly quota exceeded" });
   }
 
   // 4) Standard rate-limit headers.

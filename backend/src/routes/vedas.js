@@ -135,7 +135,7 @@ router.get("/:vedaName/mandala/:m/sukta/:s/mantra/:mm", async (req, res, next) =
       getVedasMap(),
     ]);
     if (error) throw error;
-    if (!data) return res.status(404).json({ error: "Mantra not found" });
+    if (!data) return res.status(404).json({ error: "mantra not found" });
     res.json(fmtMantra(veda, vedaDisplay(veda, meta.get(veda)), data));
   } catch (e) { next(e); }
 });

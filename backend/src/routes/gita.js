@@ -115,7 +115,7 @@ router.get("/chapters/:id/verses/:verseId", async (req, res, next) => {
       .eq("verse", verse)
       .maybeSingle();
     if (error) throw error;
-    if (!data) return res.status(404).json({ error: "Verse not found" });
+    if (!data) return res.status(404).json({ error: "verse not found" });
     res.json(fmtGita(data));
   } catch (e) { next(e); }
 });
