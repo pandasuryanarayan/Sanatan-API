@@ -50,7 +50,7 @@
   <!-- ===== BODY ===== -->
   <main class="docs-body">
     <h1 style="font-size:2rem;">Sanatan API Documentation</h1>
-    <p class="muted">Fetch Shloks from the Bhagavad Gita and all four Vedas as clean JSON.</p>
+    <p class="muted">Fetch Shloks from the Bhagavad Gita (701 verses, 18 chapters) and the four Vedas (10,552 Rigveda mantras live) as clean JSON.</p>
 
     <div id="keyNotice" class="msg ok" style="display:none;"></div>
 
@@ -72,13 +72,13 @@
     </div>
     <div class="tab-panel active" data-tabs="auth-example" data-lang="curl">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
-<pre class="code">curl https://yourdomain.com/api/v1/gita/chapter/2/verse/47 \
+<pre class="code">curl https://yourdomain.com/api/v1/gita/chapters/2/verses/47 \
   -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
     </div>
     <div class="tab-panel" data-tabs="auth-example" data-lang="js">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">fetch.js</span></div>
 <pre class="code"><span class="k">const</span> res = <span class="k">await</span> <span class="f">fetch</span>(
-  <span class="s">"https://yourdomain.com/api/v1/gita/chapter/2/verse/47"</span>,
+  <span class="s">"https://yourdomain.com/api/v1/gita/chapters/2/verses/47"</span>,
   { headers: { <span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span> } }
 );
 <span class="k">const</span> data = <span class="k">await</span> res.<span class="f">json</span>();
@@ -89,7 +89,7 @@ console.<span class="f">log</span>(data);</pre></div>
 <pre class="code"><span class="k">import</span> requests
 
 res = requests.<span class="f">get</span>(
-    <span class="s">"https://yourdomain.com/api/v1/gita/chapter/2/verse/47"</span>,
+    <span class="s">"https://yourdomain.com/api/v1/gita/chapters/2/verses/47"</span>,
     headers={<span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span>},
 )
 <span class="f">print</span>(res.<span class="f">json</span>())</pre></div>
@@ -109,11 +109,23 @@ res = requests.<span class="f">get</span>(
     <div class="endpoint"><span class="method get">GET</span><code>/gita/random</code></div>
     <div class="endpoint"><span class="method get">GET</span><code>/vedas</code></div>
     <div class="endpoint"><span class="method get">GET</span><code>/vedas/{vedaName}</code></div>
-    <div class="endpoint"><span class="method get">GET</span><code>/vedas/{vedaName}/mandala/{m}/sukta/{s}/mantra/{m}</code></div>
-    <div class="endpoint"><span class="method get">GET</span><code>/search?q=agni</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/vedas/{vedaName}/mandala/{m}/sukta/{s}/mantra/{mm}</code></div>
+    <div class="endpoint"><span class="method get">GET</span><code>/search?q=agni&amp;limit=20</code></div>
 
     <h3 id="gita">Bhagavad Gita</h3>
-    <p>List all 18 chapters, or fetch a chapter and its verses.</p>
+    <p>701 verses across 18 chapters. Chapter objects carry English + Sanskrit names with EN/HI meaning and summary:</p>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">gita</span></div>
+<pre class="code"><span class="c"># All chapters (id, eng_name, sanskrit_name, meaning, summary, verses_count, verses_available)</span>
+GET /gita/chapters
+
+<span class="c"># Chapter 2 with all 72 verses</span>
+GET /gita/chapters/2
+
+<span class="c"># A single verse</span>
+GET /gita/chapters/2/verses/47
+
+<span class="c"># A random verse</span>
+GET /gita/random</pre></div>
     <div class="tabs" data-tabs="gita-example">
       <button class="active" data-lang="curl">cURL</button>
       <button data-lang="js">JavaScript</button>
@@ -142,39 +154,71 @@ shlok = res.<span class="f">json</span>()</pre></div>
     </div>
 
     <h3 id="vedas">Vedas</h3>
-    <p>Browse a Veda, or drill down to a specific mantra by <span class="mono">mandala / sukta / mantra</span>.</p>
+    <p>One lean table per Veda (<span class="mono">rigveda | yajurveda | samaveda | atharvaveda</span>). The list carries metadata with canonical totals vs actually loaded counts; browse pages with <code class="inline">limit</code> (default 50, max 200) and <code class="inline">offset</code>.</p>
     <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">vedas</span></div>
-<pre class="code"><span class="c"># List all Vedas</span>
+<pre class="code"><span class="c"># All Vedas (eng_name, sanskrit_name, description{en,hi}, total_mantras, mantras_available)</span>
 GET /vedas
 
-<span class="c"># One Veda</span>
-GET /vedas/rigveda
+<span class="c"># First 10 Rigveda mantras</span>
+GET /vedas/rigveda?limit=10
 
-<span class="c"># A specific mantra</span>
-GET /vedas/rigveda/mandala/1/sukta/1/mantra/1</pre></div>
+<span class="c"># Next page</span>
+GET /vedas/rigveda?limit=10&amp;offset=10
+
+<span class="c"># A specific mantra (Rigveda 3.62.10 — Gayatri)</span>
+GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
 
     <h3 id="search">Search</h3>
-    <p>Full-text search across Sanskrit, transliteration, and translations.</p>
+    <p>Search across Sanskrit, transliteration, and Hindi/English translations in the Gita and all Veda tables at once. <code class="inline">limit</code> defaults to 20, max 50.</p>
     <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
 <pre class="code">curl <span class="s">"https://yourdomain.com/api/v1/search?q=agni"</span> \
   -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
 
     <h2 id="response">Standard response format</h2>
-    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">response.json</span></div>
+    <p class="muted">Gita verse (<code class="inline">GET /gita/chapters/2/verses/47</code>, <code class="inline">GET /gita/random</code>):</p>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">verse.json</span></div>
 <pre class="code">{
   <span class="s">"id"</span>: <span class="s">"gita_2_47"</span>,
   <span class="s">"source"</span>: <span class="s">"Bhagavad Gita"</span>,
+  <span class="s">"chapter"</span>: 2,
+  <span class="s">"verse"</span>: 47,
   <span class="s">"sanskrit"</span>: <span class="s">"कर्मण्येवाधिकारस्ते..."</span>,
   <span class="s">"transliteration"</span>: <span class="s">"karmanyevadhikaraste..."</span>,
   <span class="s">"translations"</span>: { <span class="s">"hindi"</span>: <span class="s">"..."</span>, <span class="s">"english"</span>: <span class="s">"..."</span> },
   <span class="s">"meaning"</span>: <span class="s">"..."</span>
 }</pre></div>
 
+    <p class="muted">Chapter (<code class="inline">GET /gita/chapters</code> items, <code class="inline">GET /gita/chapters/2</code> header):</p>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">chapter.json</span></div>
+<pre class="code">{
+  <span class="s">"id"</span>: 2,
+  <span class="s">"chapter_number"</span>: 2,
+  <span class="s">"eng_name"</span>: <span class="s">"Sankhya Yoga"</span>,
+  <span class="s">"sanskrit_name"</span>: <span class="s">"सांख्य योग"</span>,
+  <span class="s">"meaning"</span>: { <span class="s">"en"</span>: <span class="s">"..."</span>, <span class="s">"hi"</span>: <span class="s">"..."</span> },
+  <span class="s">"summary"</span>: { <span class="s">"en"</span>: <span class="s">"..."</span>, <span class="s">"hi"</span>: <span class="s">"..."</span> },
+  <span class="s">"verses_count"</span>: 72,
+  <span class="s">"verses_available"</span>: 72
+}</pre></div>
+
+    <p class="muted">Veda mantra (<code class="inline">GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</code>):</p>
+    <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">mantra.json</span></div>
+<pre class="code">{
+  <span class="s">"id"</span>: <span class="s">"rigveda_3_62_10"</span>,
+  <span class="s">"source"</span>: <span class="s">"Rigveda"</span>,
+  <span class="s">"veda"</span>: <span class="s">"rigveda"</span>,
+  <span class="s">"mandala"</span>: 3, <span class="s">"sukta"</span>: 62, <span class="s">"mantra"</span>: 10,
+  <span class="s">"sanskrit"</span>: <span class="s">"तत्सवितुर्वरेण्यं..."</span>,
+  <span class="s">"transliteration"</span>: <span class="s">"tat savitur..."</span>,
+  <span class="s">"translations"</span>: { <span class="s">"hindi"</span>: <span class="s">null</span>, <span class="s">"english"</span>: <span class="s">"..."</span> },
+  <span class="s">"meaning"</span>: <span class="s">"..."</span>
+}</pre></div>
+
     <h2 id="errors">Errors</h2>
-    <div class="endpoint"><span class="method get">401</span><code>Missing or invalid API key</code></div>
-    <div class="endpoint"><span class="method get">403</span><code>No API key found. Create an API key to use.</code></div>
-    <div class="endpoint"><span class="method get">404</span><code>Verse or chapter not found</code></div>
-    <div class="endpoint"><span class="method get">429</span><code>Rate limit exceeded</code></div>
+    <div class="endpoint"><span class="method get">401</span><code>Missing or malformed x-api-key / Invalid API key</code></div>
+    <div class="endpoint"><span class="method get">403</span><code>No API key found. Create an API key to use. (revoked key)</code></div>
+    <div class="endpoint"><span class="method get">404</span><code>Chapter / verse / Veda / mantra not found</code></div>
+    <div class="endpoint"><span class="method get">429</span><code>Rate limit exceeded (requests/second) / Monthly quota exceeded</code></div>
 
     <p class="muted mt-3">Errors return <code class="inline">{ "error": "message" }</code> with the matching HTTP status.</p>
   </main>
