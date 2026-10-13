@@ -14,6 +14,19 @@ export async function requireUser(req, res, next) {
     }
     req.user = data.user;
 
+    // Banned check — blocked users get 403 on every dashboard/API call.
+    // Tolerates a DB that hasn't run add_banned.sql yet (fail open).
+    try {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("is_banned")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      if (profile && profile.is_banned) {
+        return res.status(403).json({ error: "Account banned. Contact support." });
+      }
+    } catch {}
+
     // Make sure a profile row exists (belt-and-braces; a DB trigger also does this).
     await supabaseAdmin
       .from("profiles")

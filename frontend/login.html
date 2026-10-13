@@ -104,6 +104,23 @@
     if (data && data.session) window.location.href = "dashboard.html";
   });
 
+  // Returns true if the signed-in user is banned. Fails open (false)
+  // when the `is_banned` column hasn't been migrated yet.
+  async function isBanned() {
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return false;
+      const { data, error } = await sb.from("profiles").select("is_banned").eq("id", user.id).maybeSingle();
+      if (error) return false;
+      return !!(data && data.is_banned);
+    } catch { return false; }
+  }
+
+  async function bannedBlock() {
+    try { await sb.auth.signOut(); } catch {}
+    S.showMsg(msg, "This account has been banned. Contact support if you think this is a mistake.", "error");
+  }
+
   // ---- Login ----
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -123,10 +140,32 @@
       }
       return;
     }
+    if (await isBanned()) { bannedBlock(); return; }
     window.location.href = "dashboard.html";
   });
 
   // ---- Register ----
+  // Supabase hides email existence (anti-enumeration): re-registering an
+  // existing email returns success with NO session and NO new email.
+  // Detect that (`identities: []` or "already registered" error) and
+  // auto-login with the typed password instead of a phantom "check inbox".
+  async function tryAutoLogin(email, pwd) {
+    const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+    if (!error) {
+      if (await isBanned()) { bannedBlock(); return "banned"; }
+      window.location.href = "dashboard.html";
+      return "ok";
+    }
+    if (/confirm|verify|not confirmed/i.test(error.message)) {
+      S.showMsg(msg, "Account already exists but the email is not verified — check your inbox for the verification link.", "error");
+    } else {
+      document.getElementById("loginEmail").value = email;
+      setTab("login");
+      S.showMsg(msg, "Account already exists — please login with your password.", "error");
+    }
+    return "failed";
+  }
+
   registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     S.hideMsg(msg);
@@ -143,10 +182,27 @@
       options: { emailRedirectTo: window.location.origin + "/welcome.html" },
     });
     btn.disabled = false; btn.textContent = "Create Account";
-    if (error) { S.showMsg(msg, error.message, "error"); return; }
+    if (error) {
+      if (/already registered|already exists|already in use/i.test(error.message)) {
+        await tryAutoLogin(email, pwd);
+        return;
+      }
+      S.showMsg(msg, error.message, "error"); return;
+    }
 
     // If email confirmation is disabled in Supabase, a session comes back directly.
-    if (data && data.session) { window.location.href = "welcome.html"; return; }
+    if (data && data.session) {
+      if (await isBanned()) { bannedBlock(); return; }
+      window.location.href = "welcome.html"; return;
+    }
+
+    // Duplicate email with confirmation ON: user object with zero identities.
+    const identities = data && data.user && data.user.identities;
+    if (data && data.user && Array.isArray(identities) && identities.length === 0) {
+      await tryAutoLogin(email, pwd);
+      return;
+    }
+
     S.showMsg(msg, "Account created. Check your inbox and click the verification link to continue.", "ok");
     registerForm.reset();
   });

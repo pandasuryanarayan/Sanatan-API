@@ -43,4 +43,13 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`ॐ  Sanatan API listening on :${PORT}`));
+const HOST = process.env.HOST || "127.0.0.1";
+// Normalize display: 0.0.0.0 / :: mean "all interfaces" — show loopback instead
+// so the console never confuses you when you opened http://localhost or http://127.0.0.1.
+const displayHost = HOST === "0.0.0.0" || HOST === "::" ? "127.0.0.1" : HOST;
+app.listen(PORT, HOST, () => {
+  console.log(`ॐ  Sanatan API listening on http://${displayHost}:${PORT}`);
+  console.log(`   → Local:    http://localhost:${PORT}`);
+  console.log(`   → Loopback: http://127.0.0.1:${PORT}`);
+  console.log(`   → Health:   http://${displayHost}:${PORT}/health`);
+});

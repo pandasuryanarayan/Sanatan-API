@@ -110,11 +110,12 @@ npm install
 npm run dev            # or: npm start
 ```
 
-Health check: `GET http://localhost:8080/health` → `{ "ok": true }`.
+Health check: `GET http://127.0.0.1:8080/health` → `{ "ok": true }` (same as `http://localhost:8080/health`).
 
 | Variable | Required | Purpose |
 |---|---|---|
 | `PORT` | No (default `8080`) | Server port |
+| `HOST` | No (default `127.0.0.1`) | Bind address. `127.0.0.1` = localhost only (dev). Use `0.0.0.0` only for Docker/prod |
 | `SUPABASE_URL` | Yes | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-side DB access — keep secret |
 | `CORS_ORIGINS` | Yes (prod) | Comma-separated frontend origins, e.g. `https://yourdomain.com` |
@@ -146,8 +147,9 @@ window.SANATAN_CONFIG = {
 
 ```bash
 cd frontend
+cp assets/config.example.js assets/config.js   # edit API_BASE if needed
 python3 -m http.server 5500
-# open http://localhost:5500
+# open http://localhost:5500  (or http://127.0.0.1:5500 — same server)
 ```
 
 Or deploy the folder as-is to Netlify / Vercel / Cloudflare Pages / S3 / nginx.
