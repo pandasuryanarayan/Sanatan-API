@@ -329,6 +329,23 @@ table.tbl tr:hover td{background:rgba(255,140,66,0.05)}
 .method.post{background:rgba(255,158,27,0.20);color:#8A4B00}
 @media(max-width:900px){.docs{grid-template-columns:1fr}.docs-toc{position:static}}
 
+/* ---------- Docs on small screens: never scroll the page sideways ---------- */
+/* Grid children default to min-width:auto, so long code/URL strings stretch
+   the track past the viewport. Clamp them and wrap/break instead. */
+.docs-body{min-width:0}
+.endpoint{flex-wrap:wrap;min-width:0}
+.endpoint .method{flex-shrink:0}
+.endpoint code{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.tabs{flex-wrap:wrap}
+code.inline{overflow-wrap:anywhere}
+body{overflow-x:clip} /* safety net; `clip` (not hidden) keeps sticky TOC working */
+@media(max-width:640px){
+  .docs{padding:28px 16px 60px;gap:28px}
+  .docs-body h2{font-size:1.3rem}
+  pre.code{padding:14px;font-size:.78rem}
+  .endpoint{font-size:.78rem;padding:9px 11px}
+}
+
 /* ---------- Utility ---------- */
 .mt-0{margin-top:0}.mb-0{margin-bottom:0}.mt-2{margin-top:16px}.mt-3{margin-top:26px}.mb-2{margin-bottom:16px}
 .flex{display:flex}.between{justify-content:space-between}.items-center{align-items:center}.gap-2{gap:14px}.wrap{flex-wrap:wrap}
