@@ -238,8 +238,9 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
 (function () {
   const S = window.Sanatan;
 
-  // Base URL text
-  document.getElementById("baseUrlText").textContent = S.cfg.PUBLIC_API_BASE;
+  // Base URL text — always the live API, logged in or out.
+  document.getElementById("baseUrlText").textContent =
+    S.cfg.PUBLIC_API_BASE || "https://sanatan-api.antideploy.app/api/v1";
 
   // --- Tabs ---
   document.querySelectorAll(".tabs").forEach(group => {
@@ -286,10 +287,13 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
       cta.after(a);
     }
 
-    if (key) {
+    if (user && key) {
       notice.textContent = "Logged in — your API key is filled into every snippet below.";
       notice.style.display = "block";
     } else {
+      // A key with no session is stale (e.g. stored before logout started
+      // clearing it) — drop it so logged-out visitors never see keyed snippets.
+      if (!user && key) { try { localStorage.removeItem("sanatan_last_key"); } catch {} }
       key = "sanatan-xxxxxxxxxxxx";
       if (user) {
         notice.textContent = "Logged in. Generate a key on the API Keys page and it will appear here automatically.";

@@ -39,6 +39,9 @@
   async function logout() {
     const c = getClient();
     if (c) await c.auth.signOut();
+    // Drop the cached API key too — otherwise logged-out pages keep
+    // acting (and announcing) as if a key were still in use.
+    try { localStorage.removeItem("sanatan_last_key"); } catch {}
     window.location.href = "login.html";
   }
 
