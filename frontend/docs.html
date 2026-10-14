@@ -49,6 +49,21 @@
 
   <!-- ===== BODY ===== -->
   <main class="docs-body">
+    <details class="toc-drop">
+      <summary>On this page</summary>
+      <nav>
+        <a href="#intro">Introduction</a>
+        <a href="#base-url">Base URL</a>
+        <a href="#auth">Authentication</a>
+        <a href="#rate-limits">Rate limits</a>
+        <a href="#endpoints">Endpoints</a>
+        <a href="#gita">Gita</a>
+        <a href="#vedas">Vedas</a>
+        <a href="#search">Search</a>
+        <a href="#response">Response format</a>
+        <a href="#errors">Errors</a>
+      </nav>
+    </details>
     <h1 style="font-size:2rem;">Sanatan API Documentation</h1>
     <p class="muted">Fetch Shloks as clean JSON — the Bhagavad Gita complete (701 verses, 18 chapters, EN/HI meaning), plus the four Vedas: Rigveda fully live (10,552 mantras), and Yajurveda, Samaveda &amp; Atharvaveda with metadata live and full mantra texts on the way.</p>
 
@@ -254,8 +269,8 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
     });
   });
 
-  // --- TOC active state on scroll ---
-  const tocLinks = Array.from(document.querySelectorAll(".docs-toc a"));
+  // --- TOC active state on scroll (desktop sidebar + mobile dropdown) ---
+  const tocLinks = Array.from(document.querySelectorAll(".docs-toc a, .toc-drop nav a"));
   const heads = tocLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
   const io = new IntersectionObserver((entries) => {
     entries.forEach(en => {
@@ -265,6 +280,14 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
     });
   }, { rootMargin: "-80px 0px -70% 0px" });
   heads.forEach(h => io.observe(h));
+
+  // --- Mobile dropdown: collapse after jumping to a section ---
+  document.querySelectorAll(".toc-drop nav a").forEach(a => {
+    a.addEventListener("click", () => {
+      const drop = a.closest("details");
+      if (drop) drop.removeAttribute("open");
+    });
+  });
 
   // --- Auto-insert the user's API key into code snippets ---
   (async function injectKey() {

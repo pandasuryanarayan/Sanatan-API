@@ -327,7 +327,20 @@ table.tbl tr:hover td{background:rgba(255,140,66,0.05)}
 .method{font-weight:700;padding:2px 9px;border-radius:6px;font-size:.76rem}
 .method.get{background:rgba(84,197,113,0.18);color:#1B6B33}
 .method.post{background:rgba(255,158,27,0.20);color:#8A4B00}
-@media(max-width:900px){.docs{grid-template-columns:1fr}.docs-toc{position:static}}
+@media(max-width:900px){.docs{grid-template-columns:1fr}.docs-toc{display:none}}
+
+/* ---------- Mobile "On this page" dropdown (desktop uses the sidebar) ---------- */
+.toc-drop{display:none}
+@media(max-width:900px){
+  .toc-drop{display:block;margin:0 0 18px;border:1px solid rgba(255,140,66,0.22);border-radius:12px;background:rgba(255,255,255,0.7)}
+  .toc-drop summary{list-style:none;cursor:pointer;padding:12px 16px;font-weight:600}
+  .toc-drop summary::-webkit-details-marker{display:none}
+  .toc-drop summary::after{content:"▾";float:right;color:var(--ink-500)}
+  .toc-drop[open] summary::after{content:"▴"}
+  .toc-drop nav{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;padding:0 16px 14px}
+  .toc-drop nav a{display:block;padding:7px 0;color:var(--ink-700)}
+  .toc-drop nav a.active{color:var(--orange-2)}
+}
 
 /* ---------- Docs on small screens: never scroll the page sideways ---------- */
 /* Grid children default to min-width:auto, so long code/URL strings stretch
