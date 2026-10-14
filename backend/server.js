@@ -16,6 +16,10 @@ app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 
 // ---- CORS ----
+// Public API product: any website may call it. Auth rides on per-key /
+// per-session Bearer tokens (never cookies), so reflecting any origin is
+// safe here — and the UI can move hosts without a backend redeploy.
+// Set CORS_ORIGINS to a comma list only to restrict if ever needed.
 const origins = (process.env.CORS_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
 app.use(cors({
   origin: origins.length ? origins : true,

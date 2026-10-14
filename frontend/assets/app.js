@@ -9,18 +9,39 @@
   // Stable reference: pages read S.cfg any time after ready().
   const CFG = {};
 
+  // Production backend. Override once per browser via ?api=<url>
+  // (remembered in localStorage), e.g. ?api=http://127.0.0.1:8080 for local dev.
+  const DEFAULT_API = "https://sanatan-backend.antideploy.app";
+
   let sb = null;
   let sbForUrl = "";
   let readyPromise = null;
 
-  async function loadConfig() {
+  function resolveApiBase() {
     try {
-      const r = await fetch("/api/config", { cache: "no-store" });
+      const qp = new URLSearchParams(window.location.search).get("api");
+      if (qp) {
+        try { localStorage.setItem("sanatan_api_base", qp); } catch {}
+        return qp.replace(/\/+$/, "");
+      }
+      const saved = localStorage.getItem("sanatan_api_base");
+      if (saved) return saved.replace(/\/+$/, "");
+    } catch {}
+    return DEFAULT_API;
+  }
+
+  async function loadConfig() {
+    const base = resolveApiBase();
+    try {
+      const r = await fetch(base + "/api/config", { cache: "no-store" });
       if (r.ok) Object.assign(CFG, await r.json());
     } catch {}
     if (!CFG.SUPABASE_URL && window.SANATAN_CONFIG) {
       Object.assign(CFG, window.SANATAN_CONFIG);
     }
+    // Backend sends API_BASE "" (same-origin). A static UI is cross-origin,
+    // so pin calls to the base we actually loaded config from.
+    CFG.API_BASE = base;
     return CFG;
   }
 

@@ -45,9 +45,7 @@ sanatan-api/
 │   ├── profile.html          # Name, email, Supabase user ID
 │   └── assets/
 │       ├── style.css         # Spiritual Glossy design system
-│       ├── app.js            # Shared auth / API / UI helpers
-│       ├── config.js         # ← Supabase + backend URLs (edit this — git-ignored, see config.example.js)
-│       ├── config.example.js # Safe template for `config.js`
+│       ├── app.js            # Shared auth / API / UI helpers (fetch + XHR polling)
 │       ├── om-logo.svg       # Golden Om logo (dark glyph on gold disc)
 │       └── favicon.svg
 └── backend/                  # Node + Express — host anywhere (Render, Railway, Fly, VPS)
@@ -126,38 +124,35 @@ Health check: `GET http://127.0.0.1:8080/health` → `{ "ok": true }` (same as `
 
 ### 3. Frontend
 
-No build step — plain static files. The UI fetches its config from the
-backend (`GET /api/config`) at boot, so **no config file is needed** when
-pages are served by `frontend/server.js` (which also proxies `/api` to the
-backend, keeping everything same-origin):
+Pure static files — HTML + CSS + JS, no Node, no build step. Host the
+`frontend/` folder anywhere (Netlify, Vercel, Cloudflare Pages, S3, nginx,
+or plain `python3 -m http.server`). At boot each page fetches its config
+from the backend (`GET /api/config`), so there is **no config file** and
+nothing per-host to edit.
+
+The backend API is open to any origin (Bearer-token auth, no cookies), so a
+new frontend host works with zero backend changes.
 
 ```bash
 # Terminal 1 — backend API (needs .env, see backend/.env.example)
 cd backend
 node server.js            # :8080, /api/config + /api/v1 live here
-# open http://localhost:8080/health
 
-# Terminal 2 — frontend UI on a DIFFERENT port (proxies /api → backend)
+# Terminal 2 — static UI, any server:
 cd frontend
-PORT=5500 node server.js  # :5500 serves pages; /api/* forwarded to :8080
+python3 -m http.server 5500
 # open http://localhost:5500/login.html
 ```
 
-Serving statically instead (e.g. `python3 -m http.server 5500`, which has no
-`/api` proxy)? Then use the optional override file:
+Pointing the UI at a non-default backend (local dev against `:8080` is
+already covered by `?api=`, remembered per browser):
 
-```bash
-cd frontend
-cp assets/config.example.js assets/config.js   # edit API_BASE if needed
-python3 -m http.server 5500
-# open http://localhost:5500
+```text
+http://localhost:5500/login.html?api=http://127.0.0.1:8080
 ```
 
-(`config.js` is git-ignored and holds only browser-public values; the
-service-role key never leaves the backend.)
-
-Or deploy the folder as-is to Netlify / Vercel / Cloudflare Pages / S3 / nginx
-— with `API_BASE` in `config.js` pointing at your backend origin.
+Give `?api=<backend-url>` once — it is stored in `localStorage` for all
+pages. Production uses the built-in default, so plain links just work.
 
 ---
 

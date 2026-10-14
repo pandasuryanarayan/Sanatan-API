@@ -216,17 +216,47 @@
     if (el) el.textContent = `stats in ${Math.round(ms)} ms · ${dailyLen} day-buckets · ${recentLen} calls · ${heapMB()}`;
   }
 
+  // Continuous polling over XMLHttpRequest: native timeout support and
+  // per-request control without AbortController bookkeeping. Resolves with
+  // parsed JSON; rejects with Error carrying .status on HTTP failures,
+  // "Request timed out" on timeout, or the network error message.
+  function xhrJson(path, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", S.cfg.API_BASE + path, true);
+      xhr.timeout = timeoutMs || 0;
+      xhr.setRequestHeader("Accept", "application/json");
+      S.getClient().auth.getSession().then(({ data }) => {
+        const token = data && data.session ? data.session.access_token : "";
+        if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
+        xhr.send();
+      }).catch(reject);
+      xhr.onload = () => {
+        let body = {};
+        try { body = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch { body = { raw: xhr.responseText }; }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(body);
+        else {
+          const err = new Error((body && body.error) || "Request failed (" + xhr.status + ")");
+          err.status = xhr.status;
+          reject(err);
+        }
+      };
+      xhr.onerror = () => reject(new Error("Network request failed"));
+      xhr.ontimeout = () => reject(new Error("Request timed out"));
+    });
+  }
+
   // Live backends sleep when idle: the first call after a while can take
   // several seconds (cold start) and hit the timeout. Retry once — the
   // first attempt wakes the machine, the second one gets the data.
   async function fetchStats() {
     try {
-      return await S.api("/api/usage/stats", { timeout: 25000 });
+      return await xhrJson("/api/usage/stats", 25000);
     } catch (e) {
       if (!/timed out/i.test(e.message || "")) throw e;
       const perf = document.getElementById("perfLine");
       if (perf) perf.textContent = "Waking up the server, retrying…";
-      return await S.api("/api/usage/stats", { timeout: 25000 });
+      return await xhrJson("/api/usage/stats", 25000);
     }
   }
 
