@@ -217,10 +217,24 @@
     if (el) el.textContent = `stats in ${Math.round(ms)} ms · ${dailyLen} day-buckets · ${recentLen} calls · ${heapMB()}`;
   }
 
+  // Live backends sleep when idle: the first call after a while can take
+  // several seconds (cold start) and hit the timeout. Retry once — the
+  // first attempt wakes the machine, the second one gets the data.
+  async function fetchStats() {
+    try {
+      return await S.api("/api/usage/stats", { timeout: 25000 });
+    } catch (e) {
+      if (!/timed out/i.test(e.message || "")) throw e;
+      const perf = document.getElementById("perfLine");
+      if (perf) perf.textContent = "Waking up the server, retrying…";
+      return await S.api("/api/usage/stats", { timeout: 25000 });
+    }
+  }
+
   async function load() {
     const t0 = (window.performance && performance.now()) || Date.now();
     try {
-      const d = await S.api("/api/usage/stats", { timeout: 10000 });
+      const d = await fetchStats();
       document.getElementById("statMonth").textContent = (d.total_this_month ?? 0).toLocaleString("en-IN");
       document.getElementById("statToday").textContent = (d.today ?? 0).toLocaleString("en-IN");
       document.getElementById("statQuota").innerHTML = (d.quota ?? S.cfg.FREE_TIER_MONTHLY).toLocaleString("en-IN") + ' <small>/ month</small>';
