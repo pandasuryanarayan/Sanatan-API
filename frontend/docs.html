@@ -268,7 +268,7 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
 
   // --- Auto-insert the user's API key into code snippets ---
   (async function injectKey() {
-    await S.ready();
+    if (S.ready) await S.ready();
     const notice = document.getElementById("keyNotice");
     let key = null;
 

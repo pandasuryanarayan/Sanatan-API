@@ -190,7 +190,7 @@
 
   // boot
   (async function boot() {
-    await S.ready();
+    if (S.ready) await S.ready();
     const user = await S.requireAuth();
     if (!user) return;
     document.getElementById("sideUser").textContent = user.email || "";

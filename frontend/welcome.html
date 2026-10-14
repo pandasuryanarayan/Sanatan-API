@@ -52,7 +52,7 @@
 
   // --- Confirm the session that Supabase set from the email link ---
   (async function checkSession() {
-    await S.ready();
+    if (S.ready) await S.ready();
     const sb = S.getClient();
     if (!sb) return;
     // Give supabase-js a tick to parse the URL hash / code.

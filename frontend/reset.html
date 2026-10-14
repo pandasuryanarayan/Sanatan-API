@@ -46,7 +46,7 @@
 <script>
 (async function () {
   const S = window.Sanatan;
-  await S.ready();
+  if (S.ready) await S.ready();
   const sb = S.getClient();
   const msg = document.getElementById("msg");
   const form = document.getElementById("resetForm");

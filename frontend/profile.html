@@ -80,7 +80,7 @@
   S.wireNavAvatar();
 
   (async function () {
-    await S.ready();
+    if (S.ready) await S.ready();
     const user = await S.requireAuth();
     if (!user) return;
 
