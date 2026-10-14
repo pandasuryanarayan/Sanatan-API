@@ -59,7 +59,7 @@
 
     <h2 id="base-url">Base URL</h2>
     <p>All endpoints are relative to:</p>
-    <div class="endpoint"><span class="method get">BASE</span><code id="baseUrlText">https://yourdomain.com/api/v1</code></div>
+    <div class="endpoint"><span class="method get">BASE</span><code id="baseUrlText">https://sanatan-api.antideploy.app/api/v1</code></div>
 
     <h2 id="auth">Authentication</h2>
     <p>Authenticate every request with your API key in the <code class="inline">x-api-key</code> header. Generate keys from the <a href="keys.html">API Keys</a> page.</p>
@@ -72,13 +72,13 @@
     </div>
     <div class="tab-panel active" data-tabs="auth-example" data-lang="curl">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
-<pre class="code">curl https://yourdomain.com/api/v1/gita/chapters/2/verses/47 \
+<pre class="code">curl https://sanatan-api.antideploy.app/api/v1/gita/chapters/2/verses/47 \
   -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
     </div>
     <div class="tab-panel" data-tabs="auth-example" data-lang="js">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">fetch.js</span></div>
 <pre class="code"><span class="k">const</span> res = <span class="k">await</span> <span class="f">fetch</span>(
-  <span class="s">"https://yourdomain.com/api/v1/gita/chapters/2/verses/47"</span>,
+  <span class="s">"https://sanatan-api.antideploy.app/api/v1/gita/chapters/2/verses/47"</span>,
   { headers: { <span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span> } }
 );
 <span class="k">const</span> data = <span class="k">await</span> res.<span class="f">json</span>();
@@ -89,7 +89,7 @@ console.<span class="f">log</span>(data);</pre></div>
 <pre class="code"><span class="k">import</span> requests
 
 res = requests.<span class="f">get</span>(
-    <span class="s">"https://yourdomain.com/api/v1/gita/chapters/2/verses/47"</span>,
+    <span class="s">"https://sanatan-api.antideploy.app/api/v1/gita/chapters/2/verses/47"</span>,
     headers={<span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span>},
 )
 <span class="f">print</span>(res.<span class="f">json</span>())</pre></div>
@@ -134,12 +134,12 @@ GET /gita/random</pre></div>
     <div class="tab-panel active" data-tabs="gita-example" data-lang="curl">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
 <pre class="code"><span class="c"># A random shlok</span>
-curl https://yourdomain.com/api/v1/gita/random \
+curl https://sanatan-api.antideploy.app/api/v1/gita/random \
   -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
     </div>
     <div class="tab-panel" data-tabs="gita-example" data-lang="js">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">gita.js</span></div>
-<pre class="code"><span class="k">const</span> r = <span class="k">await</span> <span class="f">fetch</span>(<span class="s">"https://yourdomain.com/api/v1/gita/chapters/2"</span>, {
+<pre class="code"><span class="k">const</span> r = <span class="k">await</span> <span class="f">fetch</span>(<span class="s">"https://sanatan-api.antideploy.app/api/v1/gita/chapters/2"</span>, {
   headers: { <span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span> },
 });
 <span class="k">const</span> chapter = <span class="k">await</span> r.<span class="f">json</span>();</pre></div>
@@ -147,7 +147,7 @@ curl https://yourdomain.com/api/v1/gita/random \
     <div class="tab-panel" data-tabs="gita-example" data-lang="py">
       <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">gita.py</span></div>
 <pre class="code">res = requests.<span class="f">get</span>(
-    <span class="s">"https://yourdomain.com/api/v1/gita/random"</span>,
+    <span class="s">"https://sanatan-api.antideploy.app/api/v1/gita/random"</span>,
     headers={<span class="s">"x-api-key"</span>: <span class="s">"{{API_KEY}}"</span>},
 )
 shlok = res.<span class="f">json</span>()</pre></div>
@@ -171,7 +171,7 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
     <h3 id="search">Search</h3>
     <p>Search across Sanskrit, transliteration, and Hindi/English translations in the Gita and all Veda tables at once. <code class="inline">limit</code> defaults to 20, max 50.</p>
     <div class="code-window"><div class="code-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="file">terminal</span></div>
-<pre class="code">curl <span class="s">"https://yourdomain.com/api/v1/search?q=agni"</span> \
+<pre class="code">curl <span class="s">"https://sanatan-api.antideploy.app/api/v1/search?q=agni"</span> \
   -H <span class="s">"x-api-key: {{API_KEY}}"</span></pre></div>
 
     <h2 id="response">Standard response format</h2>
