@@ -58,6 +58,19 @@ const server = http.createServer((req, res) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "no-referrer");
+  // Scripts/styles stay 'unsafe-inline' (pages use inline blocks + Tailwind CDN);
+  // the policy still locks down framing, plugins, base URIs and network targets.
+  res.setHeader("Content-Security-Policy", [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sanatan-api.antideploy.app",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+  ].join("; "));
   if (req.method !== "GET" && req.method !== "HEAD") {
     res.writeHead(405, { "Content-Type": "text/plain" });
     res.end("Method not allowed");
