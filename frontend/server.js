@@ -119,11 +119,8 @@ const server = http.createServer((req, res) => {
     "base-uri 'self'",
     "frame-ancestors 'none'",
   ].join("; "));
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    res.writeHead(405, { "Content-Type": "text/plain" });
-    res.end("Method not allowed");
-    return;
-  }
+  // URL first: the API proxy below must accept ALL methods (GET/POST/DELETE),
+  // so the static-only method guard comes after it, not before.
   let urlPath;
   try {
     urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
@@ -132,17 +129,23 @@ const server = http.createServer((req, res) => {
     res.end("Bad request");
     return;
   }
+
+  // Same-origin API first: browsers call this domain, we forward upstream.
+  if (urlPath === "/health" || urlPath === "/api" || urlPath.startsWith("/api/")) {
+    proxyApi(req, res);
+    return;
+  }
+
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    res.writeHead(405, { "Content-Type": "text/plain" });
+    res.end("Method not allowed");
+    return;
+  }
   if (urlPath === "/") urlPath = "/index.html";
   const file = path.normalize(path.join(ROOT, urlPath));
   if (!file.startsWith(ROOT + path.sep) && file !== ROOT) {
     res.writeHead(403, { "Content-Type": "text/plain" });
     res.end("Forbidden");
-    return;
-  }
-
-  // Same-origin API first: browsers call this domain, we forward upstream.
-  if (urlPath === "/health" || urlPath === "/api" || urlPath.startsWith("/api/")) {
-    proxyApi(req, res);
     return;
   }
 
