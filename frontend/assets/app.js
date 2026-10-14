@@ -160,9 +160,46 @@
     }
   }
 
+  /* ---------- Mobile top-nav hamburger (auto-wires any .nav-toggle) ---------- */
+  function wireNav() {
+    document.querySelectorAll(".nav-toggle").forEach((btn) => {
+      const header = btn.closest("header.nav");
+      if (!header) return;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = header.classList.toggle("open");
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    });
+    // Tapping a link (or anywhere outside) closes the menu.
+    document.querySelectorAll("header.nav .nav-links a").forEach((a) => {
+      a.addEventListener("click", () => {
+        const header = a.closest("header.nav");
+        if (header) {
+          header.classList.remove("open");
+          const btn = header.querySelector(".nav-toggle");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+    document.addEventListener("click", (e) => {
+      document.querySelectorAll("header.nav.open").forEach((h) => {
+        if (!h.contains(e.target)) {
+          h.classList.remove("open");
+          const btn = h.querySelector(".nav-toggle");
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", wireNav);
+  } else {
+    wireNav();
+  }
+
   /* ---------- Mobile sidebar ---------- */
-  function wireSidebar() {
-    const toggle = $(".menu-toggle");
+  function wireSidebar() {    const toggle = $(".menu-toggle");
     const bar = $(".sidebar");
     if (!toggle || !bar) return;
     toggle.addEventListener("click", () => bar.classList.toggle("open"));

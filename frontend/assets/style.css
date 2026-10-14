@@ -148,6 +148,16 @@ code,kbd,pre{font-family:var(--font-mono)}
 .nav-links a.btn-ghost:hover{color:var(--ink-900)}
 @media(max-width:640px){.nav-links .hide-sm{display:none}}
 
+/* ---------- Mobile hamburger nav (index / docs / profile) ---------- */
+.nav-toggle{display:none}
+@media(max-width:640px){
+  .nav-toggle{display:block;margin-left:auto;background:rgba(255,255,255,0.7);border:1px solid rgba(255,140,66,0.25);border-radius:10px;padding:6px 12px;font-size:1.05rem;line-height:1;cursor:pointer;color:var(--ink-900)}
+  header.nav .nav-links{display:none;position:absolute;top:calc(100% + 6px);left:12px;right:12px;flex-direction:column;align-items:stretch;gap:2px;margin:0;background:rgba(255,251,245,0.98);border:1px solid rgba(255,140,66,0.22);border-radius:14px;padding:10px;box-shadow:0 14px 34px rgba(141,110,99,0.18);z-index:60}
+  header.nav.open .nav-links{display:flex}
+  header.nav .nav-links a{padding:10px 12px;border-radius:9px}
+  header.nav .nav-links a:active{background:rgba(255,140,66,0.12)}
+}
+
 /* ---------- Hero ---------- */
 .hero{padding:84px 0 64px;position:relative;z-index:1}
 .hero h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.02em}
