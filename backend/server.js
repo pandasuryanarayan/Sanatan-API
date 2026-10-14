@@ -2,6 +2,9 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import keysRouter from "./src/routes/keys.js";
 import usageRouter from "./src/routes/usage.js";
@@ -42,6 +45,22 @@ app.use("/api/usage", usageRouter);
 app.use("/api/v1/gita", apiKeyAuth, gitaRouter);
 app.use("/api/v1/vedas", apiKeyAuth, vedasRouter);
 app.use("/api/v1/search", apiKeyAuth, searchRouter);
+
+// ---- Static UI (same domain as the API) ----
+// Serves ../frontend so https://<host>/login.html and
+// https://<host>/api/v1/... share one origin, like hosted products do.
+// API routes above win (registered first); only real files are served here.
+// Skipped silently when the folder isn't next to the backend (e.g. a
+// backend-only container build), so the API never depends on it.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const frontendDir = path.join(__dirname, "..", "frontend");
+if (fs.existsSync(path.join(frontendDir, "index.html"))) {
+  app.use(express.static(frontendDir, {
+    index: "index.html",
+    dotfiles: "ignore",
+    maxAge: 0,
+  }));
+}
 
 // ---- 404 + error handler ----
 app.use((_req, res) => res.status(404).json({ error: "Not found" }));
