@@ -51,7 +51,7 @@
   const msg = document.getElementById("msg");
   const form = document.getElementById("resetForm");
 
-  if (!sb) { S.showMsg(msg, "Could not load app config from the API (/api/config). Is the backend running?", "error"); return; }
+  if (!sb) { S.showMsg(msg, "Could not load app config (/api/config). Serve this page with: cd frontend && node server.js — and keep the backend running.", "error"); return; }
 
   // supabase-js reads the recovery tokens from the URL hash automatically
   // when the client is created. Without a session the link is invalid/expired.

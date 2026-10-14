@@ -132,9 +132,15 @@ pages are served by `frontend/server.js` (which also proxies `/api` to the
 backend, keeping everything same-origin):
 
 ```bash
+# Terminal 1 — backend API (needs .env, see backend/.env.example)
+cd backend
+node server.js            # :8080, /api/config + /api/v1 live here
+# open http://localhost:8080/health
+
+# Terminal 2 — frontend UI on a DIFFERENT port (proxies /api → backend)
 cd frontend
-node server.js          # serves on $PORT (default 8080), /api → backend
-# open http://localhost:8080
+PORT=5500 node server.js  # :5500 serves pages; /api/* forwarded to :8080
+# open http://localhost:5500/login.html
 ```
 
 Serving statically instead (e.g. `python3 -m http.server 5500`, which has no

@@ -90,7 +90,7 @@
   tabLogin.addEventListener("click", () => setTab("login"));
   tabRegister.addEventListener("click", () => setTab("register"));
 
-  if (!sb) { S.showMsg(msg, "Could not load app config from the API (/api/config). Is the backend running?", "error"); return; }
+  if (!sb) { S.showMsg(msg, "Could not load app config (/api/config). Serve this page with: cd frontend && node server.js — and keep the backend running.", "error"); return; }
 
   // Already signed in? go to dashboard.
   // Exception: a recovery link must reach reset.html with its tokens
