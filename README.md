@@ -108,15 +108,18 @@ npm install
 npm run dev            # or: npm start
 ```
 
-Health check: `GET http://127.0.0.1:8080/health` → `{ "ok": true }` (same as `http://localhost:8080/health`).
+Health check: `GET http://localhost:8080/health` → `{ "ok": true }`.
+The same process serves the UI too — open `http://localhost:8080/login.html`,
+no second server, no config file (pages boot from same-origin `/api/config`).
 
 | Variable | Required | Purpose |
 |---|---|---|
 | `PORT` | No (default `8080`) | Server port |
-| `HOST` | No (default `127.0.0.1`) | Bind address. `127.0.0.1` = localhost only (dev). Use `0.0.0.0` only for Docker/prod |
+| `HOST` | No (default `0.0.0.0`) | Bind address — all interfaces, works locally and in containers |
 | `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Yes | Browser key (public by design) — served to the UI via `/api/config` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-side DB access — keep secret |
-| `CORS_ORIGINS` | Yes (prod) | Comma-separated frontend origins, e.g. `https://yourdomain.com` |
+| `CORS_ORIGINS` | No (default open) | Only set to restrict origins; empty = any website may call the API |
 | `REDIS_URL` | No | Upstash/Redis URL. Blank = in-memory limiter (single-instance dev only) |
 | `REDIS_TLS` | No | Set `true` for Upstash TLS |
 | `FREE_TIER_MONTHLY` / `FREE_TIER_RPS` / `FREE_TIER_KEYS` | No | Quota tuning (defaults `1000` / `10` / `2`) |
@@ -124,22 +127,9 @@ Health check: `GET http://127.0.0.1:8080/health` → `{ "ok": true }` (same as `
 
 ### 3. Frontend
 
-Pure static files — HTML + CSS + JS, no Node, no build step, no config file.
-The backend serves these pages itself (same domain as the API), so each page
-boots from same-origin `/api/config` with zero per-host setup:
-
-```bash
-# One terminal does everything (needs backend/.env, see .env.example)
-cd backend
-node server.js
-# UI:  http://localhost:8080/login.html
-# API: http://localhost:8080/api/v1/gita/chapters/2/verses/47
-```
-
-Hosting the UI elsewhere (Netlify, Vercel, S3, nginx) also works: the API is
-open to any origin (Bearer-token auth, no cookies), so no backend change is
-needed — but that UI then needs its own backend URL, which this setup avoids
-by serving both from one place.
+There is no frontend setup — see step 2 above. The `frontend/` folder is pure
+static files served by the backend itself; hosting it elsewhere (Netlify,
+Vercel, S3, nginx) also works since the API accepts any origin.
 
 ---
 
