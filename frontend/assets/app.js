@@ -1,21 +1,48 @@
 /* =========================================================
    Sanatan API — shared frontend runtime
-   Loads Supabase, exposes auth guard + API helper + UI utils.
-   Depends on: config.js  (window.SANATAN_CONFIG)
+   Config loads from same-origin /api/config (served by the backend),
+   falling back to window.SANATAN_CONFIG only for static servers without
+   the API proxy (e.g. `python -m http.server` local dev with config.js).
+   Call `await Sanatan.ready()` before touching auth on every page.
    ========================================================= */
 (function () {
-  const CFG = window.SANATAN_CONFIG || {};
+  // Stable reference: pages read S.cfg any time after ready().
+  const CFG = {};
+
+  let sb = null;
+  let sbForUrl = "";
+  let readyPromise = null;
+
+  async function loadConfig() {
+    try {
+      const r = await fetch("/api/config", { cache: "no-store" });
+      if (r.ok) Object.assign(CFG, await r.json());
+    } catch {}
+    if (!CFG.SUPABASE_URL && window.SANATAN_CONFIG) {
+      Object.assign(CFG, window.SANATAN_CONFIG);
+    }
+    return CFG;
+  }
+
+  function ready() {
+    if (!readyPromise) readyPromise = loadConfig();
+    return readyPromise;
+  }
 
   /* ---------- Supabase client ---------- */
   // supabase-js UMD is loaded via <script> on each page; it exposes window.supabase.createClient
-  let sb = null;
   function getClient() {
-    if (sb) return sb;
+    if (sb && sbForUrl === CFG.SUPABASE_URL) return sb;
     if (!window.supabase || !window.supabase.createClient) {
       console.warn("[Sanatan] supabase-js not loaded on this page.");
       return null;
     }
+    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) {
+      console.warn("[Sanatan] backend config not loaded yet — await Sanatan.ready() first.");
+      return null;
+    }
     sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+    sbForUrl = CFG.SUPABASE_URL;
     return sb;
   }
 
@@ -181,7 +208,7 @@
 
   /* ---------- Expose ---------- */
   window.Sanatan = {
-    cfg: CFG, getClient, getUser, requireAuth, logout, api,
+    cfg: CFG, ready, getClient, getUser, requireAuth, logout, api,
     $, $$, esc, fmtDate, fmtRelative, maskKey, showMsg, hideMsg, copyText, wireSidebar,
     getDisplayName, getInitial, wireNavAvatar,
   };

@@ -72,7 +72,6 @@
   </div>
 </div>
 
-<script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/app.js"></script>
 <script>
@@ -81,6 +80,7 @@
   S.wireNavAvatar();
 
   (async function () {
+    await S.ready();
     const user = await S.requireAuth();
     if (!user) return;
 

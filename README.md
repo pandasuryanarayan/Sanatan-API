@@ -68,7 +68,7 @@ sanatan-api/
         ├── lib/keys.js         # generate / bcrypt-hash / SHA-256 lookup
         ├── middleware/requireUser.js  # Supabase session guard
         ├── middleware/apiKey.js       # x-api-key auth + limits + usage log
-        └── routes/keys.js, usage.js, gita.js, vedas.js, search.js
+        └── routes/keys.js, usage.js, config.js (public UI config), gita.js, vedas.js, search.js
 ```
 
 ---
@@ -126,33 +126,32 @@ Health check: `GET http://127.0.0.1:8080/health` → `{ "ok": true }` (same as `
 
 ### 3. Frontend
 
-No build step — plain static files.
+No build step — plain static files. The UI fetches its config from the
+backend (`GET /api/config`) at boot, so **no config file is needed** when
+pages are served by `frontend/server.js` (which also proxies `/api` to the
+backend, keeping everything same-origin):
 
-1. Copy `frontend/assets/config.example.js` to `frontend/assets/config.js` and edit it
-   (`config.js` is git-ignored — never commit it):
-
-```js
-window.SANATAN_CONFIG = {
-  SUPABASE_URL: "https://your-project.supabase.co",
-  SUPABASE_ANON_KEY: "your-anon-key",
-  API_BASE: "https://api.yourdomain.com",       // Express backend
-  PUBLIC_API_BASE: "https://yourdomain.com/api/v1",
-  FREE_TIER_MONTHLY: 1000,
-  FREE_TIER_KEYS: 2,
-  FREE_TIER_RPS: 10,
-};
+```bash
+cd frontend
+node server.js          # serves on $PORT (default 8080), /api → backend
+# open http://localhost:8080
 ```
 
-2. Serve locally:
+Serving statically instead (e.g. `python3 -m http.server 5500`, which has no
+`/api` proxy)? Then use the optional override file:
 
 ```bash
 cd frontend
 cp assets/config.example.js assets/config.js   # edit API_BASE if needed
 python3 -m http.server 5500
-# open http://localhost:5500  (or http://127.0.0.1:5500 — same server)
+# open http://localhost:5500
 ```
 
-Or deploy the folder as-is to Netlify / Vercel / Cloudflare Pages / S3 / nginx.
+(`config.js` is git-ignored and holds only browser-public values; the
+service-role key never leaves the backend.)
+
+Or deploy the folder as-is to Netlify / Vercel / Cloudflare Pages / S3 / nginx
+— with `API_BASE` in `config.js` pointing at your backend origin.
 
 ---
 

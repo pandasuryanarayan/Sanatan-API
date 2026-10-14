@@ -231,7 +231,6 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
   </div>
 </footer>
 
-<script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/app.js"></script>
 <script>
@@ -269,6 +268,7 @@ GET /vedas/rigveda/mandala/3/sukta/62/mantra/10</pre></div>
 
   // --- Auto-insert the user's API key into code snippets ---
   (async function injectKey() {
+    await S.ready();
     const notice = document.getElementById("keyNotice");
     let key = null;
 

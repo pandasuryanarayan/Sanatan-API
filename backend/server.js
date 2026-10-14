@@ -5,6 +5,7 @@ import cors from "cors";
 
 import keysRouter from "./src/routes/keys.js";
 import usageRouter from "./src/routes/usage.js";
+import configRouter from "./src/routes/config.js";
 import gitaRouter from "./src/routes/gita.js";
 import vedasRouter from "./src/routes/vedas.js";
 import searchRouter from "./src/routes/search.js";
@@ -25,6 +26,9 @@ app.use(cors({
 
 // ---- Health ----
 app.get("/health", (_req, res) => res.json({ ok: true, service: "sanatan-api", version: "3.0.0" }));
+
+// ---- Public client config (no auth — the UI needs it before login) ----
+app.use("/api/config", configRouter);
 
 // ---- Dashboard / account routes (Supabase session auth) ----
 app.use("/api/keys", keysRouter);

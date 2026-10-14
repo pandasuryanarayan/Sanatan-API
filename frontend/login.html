@@ -66,12 +66,12 @@
   </div>
 </div>
 
-<script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/app.js"></script>
 <script>
-(function () {
+(async function () {
   const S = window.Sanatan;
+  await S.ready();
   const sb = S.getClient();
   const msg = document.getElementById("msg");
   const loginForm = document.getElementById("loginForm");
@@ -90,7 +90,7 @@
   tabLogin.addEventListener("click", () => setTab("login"));
   tabRegister.addEventListener("click", () => setTab("register"));
 
-  if (!sb) { S.showMsg(msg, "Supabase is not configured. Fill in assets/config.js.", "error"); return; }
+  if (!sb) { S.showMsg(msg, "Could not load app config from the API (/api/config). Is the backend running?", "error"); return; }
 
   // Already signed in? go to dashboard.
   // Exception: a recovery link must reach reset.html with its tokens

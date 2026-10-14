@@ -28,7 +28,6 @@
   </div>
 </main>
 
-<script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -53,6 +52,7 @@
 
   // --- Confirm the session that Supabase set from the email link ---
   (async function checkSession() {
+    await S.ready();
     const sb = S.getClient();
     if (!sb) return;
     // Give supabase-js a tick to parse the URL hash / code.

@@ -1,9 +1,12 @@
 /* =========================================================
-   Sanatan API — Frontend configuration (EXAMPLE)
-   Copy this file to `config.js` and fill in your values.
-   `config.js` is git-ignored — never commit real credentials.
+   Sanatan API — Frontend configuration (OPTIONAL OVERRIDE)
+   Only needed when serving these pages WITHOUT the node server
+   (e.g. `python -m http.server`), which has no /api proxy.
+   Copy to `config.js` (git-ignored, never commit it) and fill in.
+   Normal path: the UI fetches /api/config from the backend at boot,
+   so no file is needed at all.
    Note: the Supabase anon key is safe for browsers (RLS protects
-   data), but keep one config per deployment anyway.
+   data).
    ========================================================= */
 window.SANATAN_CONFIG = {
   // --- Supabase (from your Supabase project settings) ---

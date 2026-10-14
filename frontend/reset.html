@@ -41,17 +41,17 @@
   </div>
 </div>
 
-<script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/app.js"></script>
 <script>
-(function () {
+(async function () {
   const S = window.Sanatan;
+  await S.ready();
   const sb = S.getClient();
   const msg = document.getElementById("msg");
   const form = document.getElementById("resetForm");
 
-  if (!sb) { S.showMsg(msg, "Supabase is not configured. Fill in assets/config.js.", "error"); return; }
+  if (!sb) { S.showMsg(msg, "Could not load app config from the API (/api/config). Is the backend running?", "error"); return; }
 
   // supabase-js reads the recovery tokens from the URL hash automatically
   // when the client is created. Without a session the link is invalid/expired.
