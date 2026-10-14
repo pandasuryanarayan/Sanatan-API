@@ -43,7 +43,10 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 8080;
-const HOST = process.env.HOST || "127.0.0.1";
+// Bind all interfaces by default — containers/proxies (Docker, Antideploy,
+// Render, Railway) must reach the app from outside localhost. Local dev is
+// unaffected: http://localhost still works when bound to 0.0.0.0.
+const HOST = process.env.HOST || "0.0.0.0";
 // Normalize display: 0.0.0.0 / :: mean "all interfaces" — show loopback instead
 // so the console never confuses you when you opened http://localhost or http://127.0.0.1.
 const displayHost = HOST === "0.0.0.0" || HOST === "::" ? "127.0.0.1" : HOST;
