@@ -51,7 +51,7 @@
   const msg = document.getElementById("msg");
   const form = document.getElementById("resetForm");
 
-  if (!sb) { S.showMsg(msg, "Could not load app config from " + (S.cfg.API_BASE || "the API") + "/api/config. Your browser must reach that backend (try it in the address bar). Local dev: add ?api=http://127.0.0.1:8080 to the URL with backend running.", "error"); return; }
+  if (!sb) { S.showMsg(msg, "Could not load app config from " + location.origin + "/api/config. Open this page from the backend itself (cd backend && node server.js, then http://localhost:8080/reset.html) with the backend running.", "error"); return; }
 
   // supabase-js reads the recovery tokens from the URL hash automatically
   // when the client is created. Without a session the link is invalid/expired.

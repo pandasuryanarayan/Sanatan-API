@@ -1,59 +1,23 @@
 /* =========================================================
    Sanatan API — shared frontend runtime
-   Config loads from same-origin /api/config (served by the backend),
-   falling back to window.SANATAN_CONFIG only for static servers without
-   the API proxy (e.g. `python -m http.server` local dev with config.js).
+   The backend serves these pages AND the API from one domain, so config
+   loads same-origin from /api/config — no URLs, files, or per-host setup.
    Call `await Sanatan.ready()` before touching auth on every page.
    ========================================================= */
 (function () {
   // Stable reference: pages read S.cfg any time after ready().
   const CFG = {};
 
-  // Backend default follows the page: local pages talk to a local backend,
-  // deployed pages to production. Nothing contacts a real domain from localhost.
-  // Override once per browser via ?api=<url> (remembered in localStorage).
-  const PROD_API = "https://sanatan-backend.antideploy.app";
-  const LOCAL_API = "http://127.0.0.1:8080";
-
-  function defaultApiBase() {
-    try {
-      const h = window.location.hostname;
-      const local = h === "localhost" || h === "127.0.0.1" || h === "[::1]" ||
-        window.location.protocol === "file:";
-      if (local) return LOCAL_API;
-    } catch {}
-    return PROD_API;
-  }
-
   let sb = null;
   let sbForUrl = "";
   let readyPromise = null;
 
-  function resolveApiBase() {
-    try {
-      const qp = new URLSearchParams(window.location.search).get("api");
-      if (qp) {
-        try { localStorage.setItem("sanatan_api_base", qp); } catch {}
-        return qp.replace(/\/+$/, "");
-      }
-      const saved = localStorage.getItem("sanatan_api_base");
-      if (saved) return saved.replace(/\/+$/, "");
-    } catch {}
-    return defaultApiBase();
-  }
-
   async function loadConfig() {
-    const base = resolveApiBase();
     try {
-      const r = await fetch(base + "/api/config", { cache: "no-store" });
+      const r = await fetch("/api/config", { cache: "no-store" });
       if (r.ok) Object.assign(CFG, await r.json());
     } catch {}
-    if (!CFG.SUPABASE_URL && window.SANATAN_CONFIG) {
-      Object.assign(CFG, window.SANATAN_CONFIG);
-    }
-    // Backend sends API_BASE "" (same-origin). A static UI is cross-origin,
-    // so pin calls to the base we actually loaded config from.
-    CFG.API_BASE = base;
+    CFG.API_BASE = "";
     return CFG;
   }
 
@@ -106,8 +70,8 @@
   }
 
   /* ---------- Backend API helper (Bearer = Supabase access token) ---------- */
-  // options.timeout (ms) aborts slow requests — e.g. the dashboard passes
-  // 10000 so a stalled poll fails fast instead of overlapping the next one.
+  // options.timeout (ms) aborts slow requests so a stalled poll fails fast
+  // instead of overlapping the next one.
   async function api(path, options = {}) {
     const c = getClient();
     let token = "";

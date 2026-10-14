@@ -124,35 +124,22 @@ Health check: `GET http://127.0.0.1:8080/health` → `{ "ok": true }` (same as `
 
 ### 3. Frontend
 
-Pure static files — HTML + CSS + JS, no Node, no build step. Host the
-`frontend/` folder anywhere (Netlify, Vercel, Cloudflare Pages, S3, nginx,
-or plain `python3 -m http.server`). At boot each page fetches its config
-from the backend (`GET /api/config`), so there is **no config file** and
-nothing per-host to edit.
-
-The backend API is open to any origin (Bearer-token auth, no cookies), so a
-new frontend host works with zero backend changes.
+Pure static files — HTML + CSS + JS, no Node, no build step, no config file.
+The backend serves these pages itself (same domain as the API), so each page
+boots from same-origin `/api/config` with zero per-host setup:
 
 ```bash
-# Terminal 1 — backend API (needs .env, see backend/.env.example)
+# One terminal does everything (needs backend/.env, see .env.example)
 cd backend
-node server.js            # :8080, /api/config + /api/v1 live here
-
-# Terminal 2 — static UI, any server:
-cd frontend
-python3 -m http.server 5500
-# open http://localhost:5500/login.html
+node server.js
+# UI:  http://localhost:8080/login.html
+# API: http://localhost:8080/api/v1/gita/chapters/2/verses/47
 ```
 
-Pointing the UI at a non-default backend (local dev against `:8080` is
-already covered by `?api=`, remembered per browser):
-
-```text
-http://localhost:5500/login.html?api=http://127.0.0.1:8080
-```
-
-Give `?api=<backend-url>` once — it is stored in `localStorage` for all
-pages. Production uses the built-in default, so plain links just work.
+Hosting the UI elsewhere (Netlify, Vercel, S3, nginx) also works: the API is
+open to any origin (Bearer-token auth, no cookies), so no backend change is
+needed — but that UI then needs its own backend URL, which this setup avoids
+by serving both from one place.
 
 ---
 

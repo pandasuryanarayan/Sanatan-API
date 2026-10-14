@@ -5,6 +5,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 dist/
-# Local credentials — never commit (see config.example.js / .env.example)
-frontend/assets/config.js
+# Local credentials — never commit (see backend/.env.example)
 backend/.env
