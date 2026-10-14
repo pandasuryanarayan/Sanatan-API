@@ -9,9 +9,21 @@
   // Stable reference: pages read S.cfg any time after ready().
   const CFG = {};
 
-  // Production backend. Override once per browser via ?api=<url>
-  // (remembered in localStorage), e.g. ?api=http://127.0.0.1:8080 for local dev.
-  const DEFAULT_API = "https://sanatan-backend.antideploy.app";
+  // Backend default follows the page: local pages talk to a local backend,
+  // deployed pages to production. Nothing contacts a real domain from localhost.
+  // Override once per browser via ?api=<url> (remembered in localStorage).
+  const PROD_API = "https://sanatan-backend.antideploy.app";
+  const LOCAL_API = "http://127.0.0.1:8080";
+
+  function defaultApiBase() {
+    try {
+      const h = window.location.hostname;
+      const local = h === "localhost" || h === "127.0.0.1" || h === "[::1]" ||
+        window.location.protocol === "file:";
+      if (local) return LOCAL_API;
+    } catch {}
+    return PROD_API;
+  }
 
   let sb = null;
   let sbForUrl = "";
@@ -27,7 +39,7 @@
       const saved = localStorage.getItem("sanatan_api_base");
       if (saved) return saved.replace(/\/+$/, "");
     } catch {}
-    return DEFAULT_API;
+    return defaultApiBase();
   }
 
   async function loadConfig() {
